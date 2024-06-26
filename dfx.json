@@ -1,0 +1,27 @@
+{
+  "canisters": {
+    "deda_backend": {
+      "candid": "src/deda_backend/deda_backend.did",
+      "package": "deda_backend",
+      "type": "rust"
+    },
+    "deda_frontend": {
+      "dependencies": [
+        "deda_backend"
+      ],
+      "source": [
+        "src/deda_frontend/dist"
+      ],
+      "type": "assets",
+      "workspace": "deda_frontend"
+    }
+  },
+  "defaults": {
+    "build": {
+      "args": "",
+      "packtool": ""
+    }
+  },
+  "output_env_file": ".env",
+  "version": 1
+}

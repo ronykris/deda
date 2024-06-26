@@ -1,0 +1,5 @@
+[workspace]
+members = [
+    "src/deda_backend"
+]
+resolver = "2"
