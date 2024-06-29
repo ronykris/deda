@@ -1,5 +1,5 @@
 type User = record {
-  principal: principal;
+  id: principal;
   balance: nat64;
 };
 
@@ -19,7 +19,6 @@ type DataSubmission = record {
 };
 
 service : {
-  "init": ();
   "login": () -> (principal);
   "get_data_requests": () -> (vec DataRequest) query;
   "add_data_request": (text, nat64) -> (nat64);

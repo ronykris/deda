@@ -5,7 +5,7 @@ use ic_cdk::{init, query, update};
 
 #[derive(CandidType, Deserialize)]
 struct User {
-    principal: Principal,
+    id: Principal,
     balance: u64,
 }
 
@@ -57,7 +57,7 @@ fn login() -> Principal {
         let mut state = state.borrow_mut();
         if !state.users.contains_key(&caller) {
             state.users.insert(caller, User {
-                principal: caller,
+                id: caller,
                 balance: 0,
             });
         }
