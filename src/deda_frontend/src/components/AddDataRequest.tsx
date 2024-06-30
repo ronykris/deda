@@ -1,9 +1,11 @@
 import React, { useState } from 'react';
 import { Actor, HttpAgent } from '@dfinity/agent';
 import { idlFactory } from '../../../declarations/deda_backend';
+import * as dotenv from 'dotenv';
+dotenv.config()
 
 const agent = new HttpAgent();
-const backend = Actor.createActor(idlFactory, { agent, canisterId: 'YOUR_CANISTER_ID' });
+const backend = Actor.createActor(idlFactory, { agent, canisterId: process.env.CANISTER_ID_DEDA_BACKEND as string });
 
 const AddDataRequest: React.FC = () => {
   const [description, setDescription] = useState<string>('');
