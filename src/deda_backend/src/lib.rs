@@ -1,12 +1,20 @@
 use candid::{CandidType, Deserialize, Principal};
 use ic_cdk::caller;
 use std::collections::HashMap;
-use ic_cdk::{init, query, update};
+use ic_cdk::{query, update};
+
+#[derive(CandidType, Deserialize, Clone, Copy, PartialEq)]
+enum UserRole {
+    User,
+    Validator,
+    Researcher,
+}
 
 #[derive(CandidType, Deserialize)]
 struct User {
     id: Principal,
     balance: u64,
+    role: UserRole,
 }
 
 #[derive(CandidType, Deserialize, Clone)]
@@ -26,11 +34,19 @@ struct DataSubmission {
     verifier: Option<Principal>,
 }
 
+#[derive(CandidType, Deserialize, Clone)]
+struct CleanedData {
+    request_id: u64,
+    location: String,
+    validator: Principal,
+}
+
 #[derive(CandidType, Deserialize)]
 struct State {
     users: HashMap<Principal, User>,
     data_requests: Vec<DataRequest>,
     data_submissions: Vec<DataSubmission>,
+    cleaned_data: HashMap<u64, CleanedData>,
     next_request_id: u64,
     next_submission_id: u64,
 }
@@ -40,18 +56,14 @@ thread_local! {
         users: HashMap::new(),
         data_requests: Vec::new(),
         data_submissions: Vec::new(),
+        cleaned_data: HashMap::new(),
         next_request_id: 0,
         next_submission_id: 0,
     });
 }
 
-#[init]
-fn init() {
-    // Initialize state if needed
-}
-
 #[update]
-fn login() -> Principal {
+fn login(role: UserRole) -> Principal {
     let caller = caller();
     STATE.with(|state| {
         let mut state = state.borrow_mut();
@@ -59,6 +71,7 @@ fn login() -> Principal {
             state.users.insert(caller, User {
                 id: caller,
                 balance: 0,
+                role,
             });
         }
     });
@@ -159,6 +172,27 @@ fn pay_contributors(submission_id: u64) -> Result<(), String> {
         }
 
         Ok(())
+    })
+}
+
+#[update]
+fn store_cleaned_data(request_id: u64, location: String) {
+    let caller = ic_cdk::caller();
+    STATE.with(|state| {
+        let mut state = state.borrow_mut();
+        state.cleaned_data.insert(request_id, CleanedData {
+            request_id,
+            location,
+            validator: caller,
+        });
+    });
+}
+
+
+#[query]
+fn get_cleaned_data(request_id: u64) -> Option<CleanedData> {
+    STATE.with(|state| {
+        state.borrow().cleaned_data.get(&request_id).cloned()
     })
 }
 
