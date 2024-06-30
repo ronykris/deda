@@ -2,27 +2,38 @@ import React, { useState } from 'react';
 import { useRecoilState } from 'recoil';
 import { userState } from '../state/userState';
 import { Actor, HttpAgent } from '@dfinity/agent';
-import { idlFactory } from '../../../declarations/deda_backend';
+import { idlFactory as deda_backend_idl } from '../../../declarations/deda_backend';
 import { Principal } from '@dfinity/principal';
-import * as dotenv from 'dotenv';
-dotenv.config()
+import { initAuthClient, loginWithII } from '../auth/auth'
 
 const canisterId = process.env.CANISTER_ID_DEDA_BACKEND as string
 console.log(canisterId)
 
 const agent = new HttpAgent();
-const backend = Actor.createActor(idlFactory, { agent, canisterId: canisterId });
+const backend = Actor.createActor(deda_backend_idl, { agent, canisterId: canisterId });
+console.log(backend)
 
 const Login: React.FC = () => {
   const [user, setUser] = useRecoilState(userState);
   const [loading, setLoading] = useState(false);
-  const [role, setRole] = useState<'user' | 'validator' | 'researcher'>('user');
+  const [role, setRole] = useState<'User' | 'Validator' | 'Researcher'>('User');
 
   const login = async () => {
     setLoading(true);
-    const principal = await backend.login(role) as unknown as Principal;
-    const balance = await backend.get_balance(principal) as unknown as number;
-    setUser({ id: principal, balance, role });
+    try {
+        const authClient = await initAuthClient();
+        const principalStr = await loginWithII(authClient);
+        console.log('Role: ', role)
+        const principal = Principal.fromText(principalStr);
+        //const principal = await backend.login(role) as unknown as Principal;
+        console.log(principal)
+        const balance = await backend.get_balance(principal) as unknown as number;
+        const result = await backend.login(role, principal);
+        
+        setUser({ id: principal, balance, role });
+    } catch (err) {
+        console.error(err)
+    }
     setLoading(false);
   };
 
@@ -30,12 +41,12 @@ const Login: React.FC = () => {
     <div className="p-4">
       <select 
         value={role} 
-        onChange={(e) => setRole(e.target.value as 'user' | 'validator' | 'researcher')}
+        onChange={(e) => setRole(e.target.value as 'User' | 'Validator' | 'Researcher')}
         className="p-2 border rounded mb-2"
       >
-        <option value="user">User</option>
-        <option value="validator">Validator</option>
-        <option value="researcher">Researcher</option>
+        <option value="User">User</option>
+        <option value="Validator">Validator</option>
+        <option value="Researcher">Researcher</option>
       </select>
       <button 
         onClick={login} 

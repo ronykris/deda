@@ -3,10 +3,11 @@ import { Actor, HttpAgent } from '@dfinity/agent';
 import { idlFactory } from '../../../declarations/deda_backend';
 import { DataRequest } from '../types';
 import * as dotenv from 'dotenv';
-dotenv.config()
+//dotenv.config()
 
 const agent = new HttpAgent();
 const backend = Actor.createActor(idlFactory, { agent, canisterId: process.env.CANISTER_ID_DEDA_BACKEND as string });
+console.log(backend)
 
 const DataRequestList: React.FC = () => {
   const [dataRequests, setDataRequests] = useState<DataRequest[]>([]);
@@ -14,6 +15,7 @@ const DataRequestList: React.FC = () => {
   useEffect(() => {
     const fetchDataRequests = async () => {
       const requests = await backend.get_data_requests() as unknown as DataRequest[];
+      console.log(requests)
       setDataRequests(requests);
     };
 

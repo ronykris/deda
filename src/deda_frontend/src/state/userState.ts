@@ -6,6 +6,6 @@ export const userState = atom({
   default: {
     id: null as Principal | null,
     balance: 0,
-    role: 'user' as 'user' | 'validator' | 'researcher',
+    role: 'user' as 'User' | 'Validator' | 'Researcher',
   },
 });

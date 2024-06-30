@@ -1,9 +1,8 @@
-type UserRole = variant { User; Validator; Researcher };
-
 type User = record {
   id: principal;
   balance: nat64;
-  role: UserRole;
+  role: text;
+  wallet_id: principal;
 };
 
 type DataRequest = record {
@@ -28,7 +27,7 @@ type CleanedData = record {
 };
 
 service : {
-  "login": (UserRole) -> (principal);
+  "login": (text, principal) -> (principal);
   "get_data_requests": () -> (vec DataRequest) query;
   "add_data_request": (text, nat64) -> (nat64);
   "submit_data": (nat64, text) -> (nat64);

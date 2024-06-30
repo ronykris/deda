@@ -17,10 +17,10 @@ const AppContent: React.FC = () => {
     <div className="App p-4">
       <h1 className="text-3xl font-bold mb-6">DApp</h1>
       <Login />
-      {user.role === 'researcher' && <AddDataRequest />}
+      {user.role === 'Researcher' && <AddDataRequest />}
       <DataRequestList />
-      {user.role === 'user' && <SubmitData />}
-      {user.role === 'validator' && (
+      {user.role === 'User' && <SubmitData />}
+      {user.role === 'Validator' && (
         <>
           <VerifyData />
           <StoreCleanedData />
