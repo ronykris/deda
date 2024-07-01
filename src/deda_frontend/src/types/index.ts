@@ -3,4 +3,3 @@ export interface DataRequest {
     description: string;
     reward: number;
 }
-  

@@ -4,14 +4,13 @@ import { userState } from '../state/userState';
 import { Actor, HttpAgent } from '@dfinity/agent';
 import { idlFactory as deda_backend_idl } from '../../../declarations/deda_backend';
 import { Principal } from '@dfinity/principal';
-import { initAuthClient, loginWithII } from '../auth/auth'
+import { initAuthClient, loginWithII } from '../auth/auth';
+import { IDL } from '@dfinity/candid';
 
-const canisterId = process.env.CANISTER_ID_DEDA_BACKEND as string
-console.log(canisterId)
+const canisterId = process.env.CANISTER_ID_DEDA_BACKEND as string;
 
 const agent = new HttpAgent();
-const backend = Actor.createActor(deda_backend_idl, { agent, canisterId: canisterId });
-console.log(backend)
+const backend = Actor.createActor(deda_backend_idl as any, { agent, canisterId: canisterId });
 
 const Login: React.FC = () => {
   const [user, setUser] = useRecoilState(userState);
@@ -21,18 +20,20 @@ const Login: React.FC = () => {
   const login = async () => {
     setLoading(true);
     try {
-        const authClient = await initAuthClient();
-        const principalStr = await loginWithII(authClient);
-        console.log('Role: ', role)
-        const principal = Principal.fromText(principalStr);
-        //const principal = await backend.login(role) as unknown as Principal;
-        console.log(principal)
-        const balance = await backend.get_balance(principal) as unknown as number;
-        const result = await backend.login(role, principal);
-        
-        setUser({ id: principal, balance, role });
+      console.log('Role: ', role);
+      const authClient = await initAuthClient();
+      const principalStr = await loginWithII(authClient);
+      const principal = Principal.fromText(principalStr);
+      
+      const balance = await backend.get_balance(principal) as unknown as number;
+      const result = await backend.login(role);
+      console.log(result);
+      /*if ('Err' in result) {
+        throw new Error(result.Err);
+      }*/
+      setUser({ id: principal, balance, role });
     } catch (err) {
-        console.error(err)
+      console.error('Error logging in:', err);
     }
     setLoading(false);
   };

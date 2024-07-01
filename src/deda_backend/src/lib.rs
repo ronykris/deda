@@ -3,21 +3,11 @@ use ic_cdk::caller;
 use std::collections::HashMap;
 use ic_cdk::{query, update};
 
-/*
-#[derive(CandidType, Deserialize, Clone, Copy, PartialEq, Debug)]
-enum UserRole {
-    User,
-    Validator,
-    Researcher,
-}
-*/
-
 #[derive(CandidType, Deserialize)]
 struct User {
     id: Principal,
     balance: u64,
     role: String,
-    wallet_id: Principal,
 }
 
 #[derive(CandidType, Deserialize, Clone)]
@@ -66,9 +56,9 @@ thread_local! {
 }
 
 #[update]
-fn login(role: String, wallet_id: Principal) -> Result<Principal, String> {
+fn login(role: String) -> Result<Principal, String> {
     ic_cdk::println!("Received role: {:?}", role);
-    if role != "User" || role != "Validator" || role != "Researcher" {
+    if role != "User" && role != "Validator" && role != "Researcher" {
         return Err("Invalid role".to_string());
     }
     let caller = caller();
@@ -79,11 +69,9 @@ fn login(role: String, wallet_id: Principal) -> Result<Principal, String> {
                 id: caller,
                 balance: 0,
                 role: role.clone(),
-                wallet_id,
             });
         } else {
             let user = state.users.get_mut(&caller).unwrap();
-            user.wallet_id = wallet_id;
             user.role = role;
         }
     });

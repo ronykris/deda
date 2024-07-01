@@ -6,7 +6,7 @@ import * as dotenv from 'dotenv';
 //dotenv.config()
 
 const agent = new HttpAgent();
-const backend = Actor.createActor(idlFactory, { agent, canisterId: process.env.CANISTER_ID_DEDA_BACKEND as string });
+const backend = Actor.createActor(idlFactory as any, { agent, canisterId: process.env.CANISTER_ID_DEDA_BACKEND as string });
 console.log(backend)
 
 const DataRequestList: React.FC = () => {
