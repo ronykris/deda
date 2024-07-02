@@ -85,7 +85,8 @@ const Login: React.FC = () => {
       {user.id && (
         <div className="mt-4">
           Logged in as: {user.id.toString()} <br />
-          Role: {user.role}
+          Role: {user.role} <br />
+          Balance: {user.balance.toString()}
         </div>
       )}
     </div>

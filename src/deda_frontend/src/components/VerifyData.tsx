@@ -1,4 +1,6 @@
 import React, { useState } from 'react';
+import { useRecoilValue } from 'recoil';
+import { userState } from '../state/userState';
 import { Actor, HttpAgent } from '@dfinity/agent';
 import { idlFactory } from '../../../declarations/deda_backend';
 import * as dotenv from 'dotenv';
@@ -12,13 +14,19 @@ agent.fetchRootKey().catch(err => {
 const backend = Actor.createActor(idlFactory as any, { agent, canisterId: process.env.CANISTER_ID_DEDA_BACKEND as string });
 
 const VerifyData: React.FC = () => {
+  const user = useRecoilValue(userState);
   const [submissionId, setSubmissionId] = useState<string>('');
   const [response, setResponse] = useState<string>('');
 
   const verifyData = async () => {
     try {
-      await backend.verify_data(Number(submissionId));
-      setResponse('Data verified successfully');
+      const principal = user.id;
+      const result: any = await backend.verify_data(principal, Number(submissionId));
+      if ('Ok' in result) {
+        setResponse('Data verified successfully');
+      } else {
+        setResponse('Error verifying data: ' + result.Err);
+      }
     } catch (error) {
       setResponse('Error verifying data');
     }

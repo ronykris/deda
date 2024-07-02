@@ -102,8 +102,7 @@ fn add_data_request(description: String, reward: u64) -> u64 {
 }
 
 #[update]
-fn submit_data(request_id: u64, location: String) -> Result<u64, String> {
-    let caller = ic_cdk::caller();
+fn submit_data(principal: Principal, request_id: u64, location: String) -> Result<u64, String> {
     STATE.with(|state| {
         let mut state = state.borrow_mut();
         if state.data_requests.iter().any(|r| r.id == request_id) {
@@ -112,7 +111,7 @@ fn submit_data(request_id: u64, location: String) -> Result<u64, String> {
             state.data_submissions.push(DataSubmission {
                 id: submission_id,
                 request_id,
-                provider: caller,
+                provider: principal,
                 location,
                 verified: false,
                 verifier: None,
@@ -125,8 +124,7 @@ fn submit_data(request_id: u64, location: String) -> Result<u64, String> {
 }
 
 #[update]
-fn verify_data(submission_id: u64) -> Result<(), String> {
-    let caller = ic_cdk::caller();
+fn verify_data(principal: Principal, submission_id: u64) -> Result<(), String> {
     STATE.with(|state| {
         let mut state = state.borrow_mut();
         if let Some(submission) = state.data_submissions.iter_mut().find(|s| s.id == submission_id) {
@@ -134,7 +132,7 @@ fn verify_data(submission_id: u64) -> Result<(), String> {
                 return Err("Data already verified".to_string());
             }
             submission.verified = true;
-            submission.verifier = Some(caller);
+            submission.verifier = Some(principal);
             Ok(())
         } else {
             Err("Submission ID not found".to_string())
@@ -213,7 +211,9 @@ fn get_cleaned_data(request_id: u64) -> Option<CleanedData> {
 #[query]
 fn get_balance(user: Principal) -> u64 {
     ic_cdk::println!("Getting balance for principal: {:?}", user);
-    STATE.with(|state| {
+    let balance = STATE.with(|state| {
         state.borrow().users.get(&user).map_or(0, |u| u.balance)
-    })
+    });
+    ic_cdk::println!("Retrieved balance: {:?}", balance);
+    balance
 }

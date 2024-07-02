@@ -1,8 +1,8 @@
 import React, { useState } from 'react';
+import { useRecoilValue } from 'recoil';
+import { userState } from '../state/userState';
 import { Actor, HttpAgent } from '@dfinity/agent';
 import { idlFactory } from '../../../declarations/deda_backend';
-import * as dotenv from 'dotenv';
-//dotenv.config()
 
 const agent = new HttpAgent();
 agent.fetchRootKey().catch(err => {
@@ -12,13 +12,15 @@ agent.fetchRootKey().catch(err => {
 const backend = Actor.createActor(idlFactory as any, { agent, canisterId: process.env.CANISTER_ID_DEDA_BACKEND as string });
 
 const SubmitData: React.FC = () => {
+  const user = useRecoilValue(userState);
   const [requestId, setRequestId] = useState<string>('');
   const [location, setLocation] = useState<string>('');
   const [response, setResponse] = useState<string>('');
 
   const submitData = async () => {
     try {
-      const result: any= await backend.submit_data(Number(requestId), location);
+      const principal = user.id;
+      const result: any= await backend.submit_data(principal, Number(requestId), location);
       console.log(result)
       if ('Ok' in result) {
         const submissionId = result.Ok;

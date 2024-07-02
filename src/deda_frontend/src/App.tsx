@@ -15,7 +15,7 @@ const AppContent: React.FC = () => {
 
   return (
     <div className="App p-4">
-      <h1 className="text-3xl font-bold mb-6">DApp</h1>
+      <h1 className="text-3xl font-bold mb-6">DeDa - Decentralized Data Marketplace</h1>
       <Login />
       {user.role === 'Researcher' && <AddDataRequest />}
       <DataRequestList />

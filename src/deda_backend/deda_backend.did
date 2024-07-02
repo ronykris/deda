@@ -29,8 +29,8 @@ service : {
   "login": (principal, text) -> (variant { Ok: principal; Err: text });
   "get_data_requests": () -> (vec DataRequest) query;
   "add_data_request": (text, nat64) -> (nat64);
-  "submit_data": (nat64, text) -> (variant { Ok: nat64; Err: text });
-  "verify_data": (nat64) -> (variant { Ok: null; Err: text });
+  "submit_data": (principal, nat64, text) -> (variant { Ok: nat64; Err: text });
+  "verify_data": (principal, nat64) -> (variant { Ok: null; Err: text });
   "pay_contributors": (nat64) -> (variant { Ok: null; Err: text });
   "store_cleaned_data": (nat64, text) -> ();
   "get_cleaned_data": (nat64) -> (opt CleanedData) query;
