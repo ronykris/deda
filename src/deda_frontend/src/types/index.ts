@@ -1,5 +1,5 @@
 export interface DataRequest {
-    id: number;
+    id: bigint;
     description: string;
-    reward: number;
+    reward: bigint;
 }

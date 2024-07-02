@@ -5,6 +5,10 @@ import * as dotenv from 'dotenv';
 //dotenv.config()
 
 const agent = new HttpAgent();
+agent.fetchRootKey().catch(err => {
+  console.warn('Unable to fetch root key. Check to ensure that your local replica is running');
+  console.error(err);
+});
 const backend = Actor.createActor(idlFactory as any, { agent, canisterId: process.env.CANISTER_ID_DEDA_BACKEND as string });
 
 const SubmitData: React.FC = () => {
@@ -14,8 +18,15 @@ const SubmitData: React.FC = () => {
 
   const submitData = async () => {
     try {
-      const submissionId = await backend.submit_data(Number(requestId), location);
-      setResponse(`Data submitted successfully with ID: ${submissionId}`);
+      const result: any= await backend.submit_data(Number(requestId), location);
+      console.log(result)
+      if ('Ok' in result) {
+        const submissionId = result.Ok;
+        console.log(submissionId);
+        setResponse(`Data submitted successfully with ID: ${submissionId}`);
+      } else if ('Err' in result) {
+        setResponse(`Error submitting data: ${result.Err}`);
+      }
     } catch (error) {
       setResponse('Error submitting data');
     }

@@ -1,10 +1,12 @@
 import React, { useState } from 'react';
 import { Actor, HttpAgent } from '@dfinity/agent';
 import { idlFactory } from '../../../declarations/deda_backend';
-import * as dotenv from 'dotenv';
-//dotenv.config()
 
 const agent = new HttpAgent();
+agent.fetchRootKey().catch(err => {
+  console.warn('Unable to fetch root key. Check to ensure that your local replica is running');
+  console.error(err);
+});
 const backend = Actor.createActor(idlFactory as any, { agent, canisterId: process.env.CANISTER_ID_DEDA_BACKEND as string });
 
 const AddDataRequest: React.FC = () => {
@@ -15,8 +17,10 @@ const AddDataRequest: React.FC = () => {
   const addDataRequest = async () => {
     try {
       const requestId = await backend.add_data_request(description, BigInt(reward));
+      console.log(requestId);
       setResponse(`Data request added successfully with ID: ${requestId}`);
     } catch (error) {
+      console.error(error)
       setResponse('Error adding data request');
     }
   };

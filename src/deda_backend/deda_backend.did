@@ -26,7 +26,7 @@ type CleanedData = record {
 };
 
 service : {
-  "login": (text) -> (variant { Ok: principal; Err: text });
+  "login": (principal, text) -> (variant { Ok: principal; Err: text });
   "get_data_requests": () -> (vec DataRequest) query;
   "add_data_request": (text, nat64) -> (nat64);
   "submit_data": (nat64, text) -> (variant { Ok: nat64; Err: text });

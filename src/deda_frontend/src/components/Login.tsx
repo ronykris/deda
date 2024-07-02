@@ -9,7 +9,12 @@ import { AuthClient } from '@dfinity/auth-client';
 const canisterId = process.env.CANISTER_ID_DEDA_BACKEND as string;
 
 const agent = new HttpAgent();
+agent.fetchRootKey().catch(err => {
+  console.warn('Unable to fetch root key. Check to ensure that your local replica is running');
+  console.error(err);
+});
 const backend = Actor.createActor(deda_backend_idl as any, { agent, canisterId: canisterId });
+console.log(backend);
 
 const Login: React.FC = () => {
   const [user, setUser] = useRecoilState(userState);
@@ -26,16 +31,24 @@ const Login: React.FC = () => {
         }
       });
       await authClient.login({
-        identityProvider: `http://127.0.0.1:4943/?canisterId=${process.env.CANISTER_ID_INTERNET_IDENTITY}`,
+        //identityProvider: `http://127.0.0.1:4943/?canisterId=${process.env.CANISTER_ID_INTERNET_IDENTITY}`,
+        identityProvider: `http://${process.env.CANISTER_ID_INTERNET_IDENTITY}.localhost:4943/`,
         onSuccess: async() => {
           console.log("Login successful");
           const identity = authClient.getIdentity().getPrincipal().toString();  
+          console.log(identity)
           const principal = Principal.fromText(identity);
-          const balance = await backend.get_balance(principal) as unknown as number;
-          console.log(balance)
-          const result = await backend.login(role);
-          console.log(result);
-          setUser({ id: principal, balance, role });
+          console.log(principal)
+          try {
+            const balance = (await backend.get_balance(principal)) as unknown as number;
+            console.log(balance)
+            const result = await backend.login(principal, role);
+            console.log(result);
+            setUser({ id: principal, balance, role });
+          } catch (e) {
+            console.error('Error fetching balance or logging in:', e);
+          }
+          
         },
       });
       /*if (await authClient.isAuthenticated()) {

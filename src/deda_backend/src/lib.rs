@@ -1,5 +1,4 @@
 use candid::{CandidType, Deserialize, Principal};
-use ic_cdk::caller;
 use std::collections::HashMap;
 use ic_cdk::{query, update};
 
@@ -56,26 +55,30 @@ thread_local! {
 }
 
 #[update]
-fn login(role: String) -> Result<Principal, String> {
-    ic_cdk::println!("Received role: {:?}", role);
+fn login(principal: Principal, role: String) -> Result<Principal, String> {
+    ic_cdk::println!("Received principal: {:?} with role: {:?}", principal, role);
+    
     if role != "User" && role != "Validator" && role != "Researcher" {
         return Err("Invalid role".to_string());
     }
-    let caller = caller();
+    
     STATE.with(|state| {
         let mut state = state.borrow_mut();
-        if !state.users.contains_key(&caller) {
-            state.users.insert(caller, User {
-                id: caller,
+        if !state.users.contains_key(&principal) {
+            ic_cdk::println!("Inserting new user with principal: {:?}", principal);
+            state.users.insert(principal, User {
+                id: principal,
                 balance: 0,
                 role: role.clone(),
             });
         } else {
-            let user = state.users.get_mut(&caller).unwrap();
+            let user = state.users.get_mut(&principal).unwrap();
             user.role = role;
+            ic_cdk::println!("Updating existing user with principal: {:?}", principal);
         }
     });
-    Ok(caller)
+    
+    Ok(principal)
 }
 
 #[query]
@@ -141,14 +144,14 @@ fn verify_data(submission_id: u64) -> Result<(), String> {
 
 #[update]
 fn pay_contributors(submission_id: u64) -> Result<(), String> {
-    let (provider_principal, verifier_principal, reward) = STATE.with(|state| {
+    let (provider_principal, verifier_principal, provider_reward, verifier_reward) = STATE.with(|state| {
         let state = state.borrow();
         
         if let Some(submission) = state.data_submissions.iter().find(|s| s.id == submission_id && s.verified) {
             if let Some(request) = state.data_requests.iter().find(|r| r.id == submission.request_id) {
                 let provider_reward = request.reward / 2;
                 let verifier_reward = request.reward / 2;
-                Ok((submission.provider, submission.verifier, (provider_reward, verifier_reward)))
+                Ok((submission.provider, submission.verifier, provider_reward, verifier_reward))
             } else {
                 Err("Request not found".to_string())
             }
@@ -159,16 +162,26 @@ fn pay_contributors(submission_id: u64) -> Result<(), String> {
     
     STATE.with(|state| {
         let mut state = state.borrow_mut();
+
+        ic_cdk::println!("Provider Principal: {:?}", provider_principal);
+        ic_cdk::println!("Verifier Principal: {:?}", verifier_principal);
+        ic_cdk::println!("Provider Reward: {:?}", provider_reward);
+        ic_cdk::println!("Verifier Reward: {:?}", verifier_reward);
+        
         if let Some(provider) = state.users.get_mut(&provider_principal) {
-            provider.balance += reward.0;
+            provider.balance += provider_reward;
+            ic_cdk::println!("Provider new balance: {:?}", provider.balance);
         } else {
             return Err("Provider not found".to_string());
         }
 
-        if let Some(Some(verifier)) = verifier_principal.map(|vp| state.users.get_mut(&vp)) {
-            verifier.balance += reward.1;
-        } else if verifier_principal.is_some() {
-            return Err("Verifier not found".to_string());
+        if let Some(verifier_principal) = verifier_principal {
+            if let Some(verifier) = state.users.get_mut(&verifier_principal) {
+                verifier.balance += verifier_reward;
+                ic_cdk::println!("Verifier new balance: {:?}", verifier.balance);
+            } else {
+                return Err("Verifier not found".to_string());
+            }
         }
 
         Ok(())
@@ -199,6 +212,7 @@ fn get_cleaned_data(request_id: u64) -> Option<CleanedData> {
 
 #[query]
 fn get_balance(user: Principal) -> u64 {
+    ic_cdk::println!("Getting balance for principal: {:?}", user);
     STATE.with(|state| {
         state.borrow().users.get(&user).map_or(0, |u| u.balance)
     })

@@ -5,6 +5,10 @@ import * as dotenv from 'dotenv';
 //dotenv.config()
 
 const agent = new HttpAgent();
+agent.fetchRootKey().catch(err => {
+  console.warn('Unable to fetch root key. Check to ensure that your local replica is running');
+  console.error(err);
+});
 const backend = Actor.createActor(idlFactory as any, { agent, canisterId: process.env.CANISTER_ID_DEDA_BACKEND as string });
 
 const VerifyData: React.FC = () => {
