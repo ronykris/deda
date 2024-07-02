@@ -4,8 +4,7 @@ import { userState } from '../state/userState';
 import { Actor, HttpAgent } from '@dfinity/agent';
 import { idlFactory as deda_backend_idl } from '../../../declarations/deda_backend';
 import { Principal } from '@dfinity/principal';
-import { initAuthClient, loginWithII } from '../auth/auth';
-import { IDL } from '@dfinity/candid';
+import { AuthClient } from '@dfinity/auth-client';
 
 const canisterId = process.env.CANISTER_ID_DEDA_BACKEND as string;
 
@@ -21,17 +20,32 @@ const Login: React.FC = () => {
     setLoading(true);
     try {
       console.log('Role: ', role);
-      const authClient = await initAuthClient();
-      const principalStr = await loginWithII(authClient);
-      const principal = Principal.fromText(principalStr);
-      
-      const balance = await backend.get_balance(principal) as unknown as number;
-      const result = await backend.login(role);
-      console.log(result);
+      let authClient = await AuthClient.create({
+        idleOptions: {
+          idleTimeout: 1000 * 60 * 60
+        }
+      });
+      await authClient.login({
+        identityProvider: `http://127.0.0.1:4943/?canisterId=${process.env.CANISTER_ID_INTERNET_IDENTITY}`,
+        onSuccess: async() => {
+          console.log("Login successful");
+          const identity = authClient.getIdentity().getPrincipal().toString();  
+          const principal = Principal.fromText(identity);
+          const balance = await backend.get_balance(principal) as unknown as number;
+          console.log(balance)
+          const result = await backend.login(role);
+          console.log(result);
+          setUser({ id: principal, balance, role });
+        },
+      });
+      /*if (await authClient.isAuthenticated()) {
+        
+        
+      }*/
       /*if ('Err' in result) {
         throw new Error(result.Err);
       }*/
-      setUser({ id: principal, balance, role });
+      
     } catch (err) {
       console.error('Error logging in:', err);
     }
