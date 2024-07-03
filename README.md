@@ -1,61 +1,55 @@
-# `deda`
+### Project: DEda - Decentralized Data Application
 
-Welcome to your new `deda` project and to the Internet Computer development community. By default, creating a new project adds this README and some template files to your project directory. You can edit these template files to customize your project and to include your own code to speed up the development cycle.
+**Problem Statement:**
 
-To get started, you might want to explore the project directory structure and the default configuration file. Working with this project in your development environment will not affect any production deployment or identity tokens.
+In the rapidly evolving fields of Artificial Intelligence (AI) and Machine Learning (ML), practitioners often face significant challenges in acquiring high-quality, relevant datasets. These datasets are critical for training models and validating research hypotheses. However, obtaining such data can be time-consuming, costly, and fraught with issues related to data integrity and quality. Additionally, there is often a lack of transparency and fairness in how data contributors and validators are rewarded for their efforts. 
 
-To learn more before you start working with `deda`, see the following documentation available online:
+### Solution: DEda - Decentralized Data Application
 
-- [Quick Start](https://internetcomputer.org/docs/current/developer-docs/setup/deploy-locally)
-- [SDK Developer Tools](https://internetcomputer.org/docs/current/developer-docs/setup/install)
-- [Rust Canister Development Guide](https://internetcomputer.org/docs/current/developer-docs/backend/rust/)
-- [ic-cdk](https://docs.rs/ic-cdk)
-- [ic-cdk-macros](https://docs.rs/ic-cdk-macros)
-- [Candid Introduction](https://internetcomputer.org/docs/current/developer-docs/backend/candid/)
+DEda aims to address these challenges by creating a decentralized data marketplace specifically for AI and ML practitioners. The platform facilitates the seamless exchange of data sets between researchers, data publishers, and validators, ensuring data quality and fair compensation for all participants. By leveraging the capabilities of the Internet Computer (ICP), DEda provides a secure, transparent, and efficient ecosystem for data transactions.
 
-If you want to start working on your project right away, you might want to try the following commands:
+### Key Features and Workflow:
 
-```bash
-cd deda/
-dfx help
-dfx canister --help
-```
+1. **Researcher Requests Data**:
+   - A researcher initiates a request for a specific dataset required for their AI/ML project. This request is recorded on the DEda platform, detailing the type of data needed and the reward offered.
 
-## Running the project locally
+![Researcher](Deda-Researcher.png)
 
-If you want to test your project locally, you can use the following commands:
+2. **User Publishes Data**:
+   - A user, who has access to the requested data, sees the researcher's request and submits the data to the platform. This submission includes the data location and other relevant details.
 
-```bash
-# Starts the replica, running in the background
-dfx start --background
+   ![Data Publisher](deda-user.png)
 
-# Deploys your canisters to the replica and generates your candid interface
-dfx deploy
-```
+3. **Validator Verifies and Cleans Data**:
+   - A validator reviews the submitted data, performs necessary checks, and cleans the data to ensure it meets the required standards. This step is crucial for maintaining the integrity and usability of the data.
 
-Once the job completes, your application will be available at `http://localhost:4943?canisterId={asset_canister_id}`.
+   ![Validator](deda-validator.png)
 
-If you have made changes to your backend canister, you can generate a new candid interface with
+4. **Incentivizing Participants**:
+   - Both the data publisher (user) and the validator are incentivized for their contributions. The smart contract ensures that rewards are distributed fairly based on their efforts.
 
-```bash
-npm run generate
-```
+### Technology Stack:
 
-at any time. This is recommended before starting the frontend development server, and will be run automatically any time you run `dfx deploy`.
+- **Internet Computer (ICP)**: The entire DEda platform, including smart contracts and the frontend, is hosted and operated on the ICP. This provides a decentralized, scalable, and secure infrastructure.
+  
+- **Smart Contracts in Rust**: The core logic of DEda, such as login/authentication, data request management, data submission, verification, and reward distribution, is implemented using smart contracts written in Rust. Rust is chosen for its performance and safety features, ensuring robust contract execution.
 
-If you are making frontend changes, you can start a development server with
+- **Frontend in React and Vite**: The user interface of DEda is developed using React, a popular JavaScript library for building responsive UIs, and Vite, a build tool that offers a fast development server and optimized builds.
 
-```bash
-npm start
-```
+- **Internet Identity**: User authentication is handled through Internet Identity, a decentralized identity provider on ICP. This ensures secure and private user logins without relying on centralized authentication services.
 
-Which will start a server at `http://localhost:8080`, proxying API requests to the replica at port 4943.
+### How ICP was Utilized:
 
-### Note on frontend environment variables
+- **Hosting and Deployment**: Both the smart contracts and the frontend application are deployed on the Internet Computer, ensuring a decentralized and secure environment.
+  
+- **Smart Contract Functionality**: Key functionalities such as user login, data requests, data submissions, data verification, and payment distribution are managed through smart contracts written in Rust. These contracts are executed on the ICP, ensuring transparency and reliability.
 
-If you are hosting frontend code somewhere without using DFX, you may need to make one of the following adjustments to ensure your project does not fetch the root key in production:
+- **Authentication with Internet Identity**: Internet Identity is used for authenticating users. It provides a seamless and secure way for users to log in and interact with the DEda platform without compromising their privacy.
 
-- set`DFX_NETWORK` to `ic` if you are using Webpack
-- use your own preferred method to replace `process.env.DFX_NETWORK` in the autogenerated declarations
-  - Setting `canisters -> {asset_canister_id} -> declarations -> env_override to a string` in `dfx.json` will replace `process.env.DFX_NETWORK` with the string in the autogenerated declarations
-- Write your own `createActor` constructor
+### ToDo:
+
+- Implement tokens and token transfers for incentivisation
+
+- Integrate ICP storage OR IPFS to store data sets
+
+- Improve the UI and deploy on Mainnet
