@@ -2,7 +2,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "../ui/card";
 
 function CompletedTasks() {
   return (
-    <Card className="bg-black bg-opacity-50 border-none">
+    <Card className="bg-white bg-opacity-50 border-none">
       <CardHeader>
         <CardTitle>Completed Tasks</CardTitle>
       </CardHeader>
