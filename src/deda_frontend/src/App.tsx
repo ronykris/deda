@@ -9,6 +9,8 @@ import AddDataRequest from './components/AddDataRequest';
 import PayContributors from './components/PayContributors';
 //import './App.css';
 import { userState } from './state/userState';
+import { BrowserRouter as Router, Route, Routes } from 'react-router-dom';
+import LandingPage from './components/LandingPage';
 
 const AppContent: React.FC = () => {
   const user = useRecoilValue(userState);
@@ -33,7 +35,12 @@ const AppContent: React.FC = () => {
 
 const App: React.FC = () => (
   <RecoilRoot>
-    <AppContent />
+    <Router>
+      <Routes>
+        <Route path="/" element={<LandingPage />} />
+        <Route path="/login" element={<AppContent />} />
+      </Routes>
+    </Router>
   </RecoilRoot>
 );
 
