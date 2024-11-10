@@ -6,6 +6,7 @@ import { idlFactory as deda_backend_idl } from '../../../declarations/deda_backe
 import { Principal } from '@dfinity/principal';
 import { AuthClient } from '@dfinity/auth-client';
 import Header from './Header';
+import { storeUser } from '../lib/cacheFunctions';
 
 const canisterId = process.env.CANISTER_ID_DEDA_BACKEND as string;
 
@@ -43,19 +44,22 @@ const Login: React.FC = () => {
           try {
             const balance = (await backend.get_balance(principal)) as unknown as number;
             console.log(balance)
+
             const result = await backend.login(principal, role);
             console.log(result);
+
             setUser({ id: principal, balance, role });
+            storeUser({ id: principal, balance, role });
           } catch (e) {
             console.error('Error fetching balance or logging in:', e);
           }
 
         },
       });
-      /*if (await authClient.isAuthenticated()) {
-        
-        
-      }*/
+      // if (await authClient.isAuthenticated()) {
+
+
+      // }
       /*if ('Err' in result) {
         throw new Error(result.Err);
       }*/
