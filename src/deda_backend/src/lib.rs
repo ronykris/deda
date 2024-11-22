@@ -1,6 +1,8 @@
 use candid::{CandidType, Deserialize, Principal};
 use std::collections::HashMap;
 use ic_cdk::{query, update};
+use ic_stable_structures::{ storable::Bound, StableVec, Storable };
+use std::cell::RefCell;
 
 #[derive(CandidType, Deserialize)]
 struct User {
@@ -43,6 +45,9 @@ struct State {
     next_submission_id: u64,
 }
 
+#[derive(Debug, Clone)]
+struct CsvLine(String);
+
 thread_local! {
     static STATE: std::cell::RefCell<State> = std::cell::RefCell::new(State {
         users: HashMap::new(),
@@ -53,6 +58,25 @@ thread_local! {
         next_submission_id: 0,
     });
 }
+
+impl Storable for CsvLine {
+    fn to_bytes(&self) -> std::borrow::Cow<[u8]> {
+        std::borrow::Cow::Borrowed(self.0.as_bytes())
+    }
+    fn from_bytes(bytes: std::borrow::Cow<[u8]>) -> Self {
+        let owned_bytes: Vec<u8> = bytes.into_owned();
+        Self(
+            String::from_utf8(owned_bytes)
+                .expect("Failed to convert bytes to a valid UTF-8 string"),
+        )
+    }
+    const BOUND: Bound = Bound::Bounded {
+        max_size: 1024,
+        is_fixed_size: false,
+    };
+    
+}
+
 
 #[update]
 fn login(principal: Principal, role: String) -> Result<Principal, String> {
