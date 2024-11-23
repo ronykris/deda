@@ -1,8 +1,9 @@
 use candid::{CandidType, Deserialize, Principal};
 use std::{collections::HashMap, ops::Range, rc::Rc};
 use ic_cdk::{api::stable::StableMemory, query, update};
-use ic_stable_structures::{ memory_manager::{MemoryId, MemoryManager}, storable::Bound, DefaultMemoryImpl, Memory, RestrictedMemory, StableVec, Storable };
+use ic_stable_structures::{ memory_manager::{MemoryId, MemoryManager, VirtualMemory}, storable::Bound, BTreeMap, DefaultMemoryImpl, Memory, RestrictedMemory, StableBTreeMap, StableVec, Storable };
 use std::cell::RefCell;
+use std::borrow::Cow;
 
 #[derive(CandidType, Deserialize)]
 struct User {
@@ -46,7 +47,7 @@ struct State {
 }
 
 #[derive(Debug, Clone)]
-struct CsvLine(String);
+struct SubmissionData(Vec<String>);
 
 thread_local! {
     static STATE: std::cell::RefCell<State> = std::cell::RefCell::new(State {
@@ -59,17 +60,25 @@ thread_local! {
     });
 }
 
-impl Storable for CsvLine {
-    fn to_bytes(&self) -> std::borrow::Cow<[u8]> {
-        std::borrow::Cow::Borrowed(self.0.as_bytes())
+impl Storable for SubmissionData {
+    fn to_bytes(&self) -> Cow<[u8]> {
+        let serialized: Vec<u8> = self.0.iter()
+            .flat_map(|s| {
+                let mut bytes = s.as_bytes().to_vec();
+                bytes.push(0); // Add a null byte as a separator
+                bytes
+            })
+            .collect();
+        Cow::Owned(serialized)
     }
 
-    fn from_bytes(bytes: std::borrow::Cow<[u8]>) -> Self {
-        let owned_bytes: Vec<u8> = bytes.into_owned();
-        Self(
-            String::from_utf8(owned_bytes)
-                .expect("Failed to convert bytes to a valid UTF-8 string"),
-        )
+    fn from_bytes(bytes: Cow<[u8]>) -> Self {
+        let bytes = bytes.into_owned();
+        let strings = bytes.split(|&b| b == 0) // Split on null bytes
+            .filter(|slice| !slice.is_empty())
+            .map(|slice| String::from_utf8(slice.to_vec()).expect("Invalid UTF-8"))
+            .collect();
+        SubmissionData(strings)
     }
 
     const BOUND: Bound = Bound::Bounded {
@@ -79,14 +88,15 @@ impl Storable for CsvLine {
 }
 
 fn get_page_range() -> Range<u64> {
-    0..100 // Adjust based on application needs
+    0..1000 // Adjust based on application needs
 }
 
 thread_local! {
-    //static MEMORY_MANAGER: RefCell<MemoryManager<DefaultMemoryImpl>> =
-    //RefCell::new(MemoryManager::init(DefaultMemoryImpl::default()));
+    static MEMORY_MANAGER: RefCell<MemoryManager<DefaultMemoryImpl>> = RefCell::new(
+        MemoryManager::init(DefaultMemoryImpl::default())
+    );
 
-    static CSV_STORAGE: RefCell<StableVec<CsvLine, RestrictedMemory<Rc<RefCell<Vec<u8>>>>>> = RefCell::new(
+    /*static CSV_STORAGE: RefCell<StableVec<CsvLine, RestrictedMemory<Rc<RefCell<Vec<u8>>>>>> = RefCell::new(
         {   
             let memory = Rc::new(RefCell::new(Vec::new()));
             let page_range: Range<u64> = get_page_range(); 
@@ -94,6 +104,13 @@ thread_local! {
             
             StableVec::init(restricted_memory).expect("Failed to initialize StableVec")
         }
+    );*/
+    static SUBMISSION_DATA: RefCell<StableBTreeMap<u64, SubmissionData, VirtualMemory<DefaultMemoryImpl>>> = RefCell::new(
+        StableBTreeMap::init(
+            MEMORY_MANAGER.with(|manager| {
+                manager.borrow().get(MemoryId::new(0)) // MemoryId 0 for submission data
+            }),
+        )
     );
 }
 
@@ -160,12 +177,27 @@ fn submit_data(principal: Principal, request_id: u64, data: Vec<String>) -> Resu
                 verifier: None,
             });
 
-            CSV_STORAGE.with(|storage| {
+            let submission_data = SubmissionData(data.clone());
+            let size = submission_data.to_bytes().len();
+            if size > 10_000 { // Adjust limit based on memory range
+                return Err(format!("Data size exceeds limit: {} bytes", size));
+            }
+
+            SUBMISSION_DATA.with(|storage| -> Result<(), String> {
                 let mut storage = storage.borrow_mut();
-                for line in data {
-                    storage.push(&CsvLine(line)).expect("Failed to store CSV line");
+                ic_cdk::println!("Inserting submission data with ID: {}", submission_id);
+
+                match storage.insert(submission_id, submission_data) {
+                    Some(existing_data) => {
+                        ic_cdk::println!("Overwriting existing data: {:?}", existing_data);
+                        Ok(()) // Return success when overwriting
+                    }
+                    None => {
+                        ic_cdk::println!("Inserted new submission data");
+                        Ok(()) // Return success when inserting new data
+                    }
                 }
-            });
+            })?;
 
             ic_cdk::println!(
                 "Data submitted by {:?} for request_id: {} with submission_id: {}",
@@ -174,6 +206,7 @@ fn submit_data(principal: Principal, request_id: u64, data: Vec<String>) -> Resu
                 submission_id
             );
             Ok(submission_id)
+            
         } else {
             Err("Request ID not found".to_string())
         }
@@ -274,15 +307,15 @@ fn get_data(submission_id: u64) -> Result<Vec<String>, String> {
         if let Some(submission) = state.data_submissions.iter().find(|s| s.id == submission_id) {
             if submission.provider == caller || state.users.get(&caller).map(|u| &u.role) == Some(&"Researcher".to_string()) {
                 
-                return CSV_STORAGE.with(|storage| {
+                return SUBMISSION_DATA.with(|storage| {
                     let storage = storage.borrow();
-                    let data: Vec<String> = storage
-                        .iter()
-                        .map(|csv_line| csv_line.0.clone())
-                        .collect();
-                    Ok(data)
+                    match storage.get(&submission_id) {
+                        Some(data) => Ok(data.0.clone()),
+                        None => Err("No data found for submission ID".to_string()),
+                    }
                 });
             } else {
+                ic_cdk::println!("Access denied for caller: {:?}", caller);
                 return Err("Access denied".to_string());
             }
         } else {
