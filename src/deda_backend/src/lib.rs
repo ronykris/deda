@@ -1,7 +1,7 @@
 use candid::{CandidType, Deserialize, Principal};
-use std::collections::HashMap;
-use ic_cdk::{query, update};
-use ic_stable_structures::{ storable::Bound, StableVec, Storable };
+use std::{collections::HashMap, ops::Range, rc::Rc};
+use ic_cdk::{api::stable::StableMemory, query, update};
+use ic_stable_structures::{ memory_manager::{MemoryId, MemoryManager}, storable::Bound, DefaultMemoryImpl, Memory, RestrictedMemory, StableVec, Storable };
 use std::cell::RefCell;
 
 #[derive(CandidType, Deserialize)]
@@ -63,6 +63,7 @@ impl Storable for CsvLine {
     fn to_bytes(&self) -> std::borrow::Cow<[u8]> {
         std::borrow::Cow::Borrowed(self.0.as_bytes())
     }
+
     fn from_bytes(bytes: std::borrow::Cow<[u8]>) -> Self {
         let owned_bytes: Vec<u8> = bytes.into_owned();
         Self(
@@ -70,13 +71,31 @@ impl Storable for CsvLine {
                 .expect("Failed to convert bytes to a valid UTF-8 string"),
         )
     }
+
     const BOUND: Bound = Bound::Bounded {
         max_size: 1024,
         is_fixed_size: false,
-    };
-    
+    };    
 }
 
+fn get_page_range() -> Range<u64> {
+    0..100 // Adjust based on application needs
+}
+
+thread_local! {
+    //static MEMORY_MANAGER: RefCell<MemoryManager<DefaultMemoryImpl>> =
+    //RefCell::new(MemoryManager::init(DefaultMemoryImpl::default()));
+
+    static CSV_STORAGE: RefCell<StableVec<CsvLine, RestrictedMemory<Rc<RefCell<Vec<u8>>>>>> = RefCell::new(
+        {   
+            let memory = Rc::new(RefCell::new(Vec::new()));
+            let page_range: Range<u64> = get_page_range(); 
+            let restricted_memory = RestrictedMemory::new(memory, page_range);
+            
+            StableVec::init(restricted_memory).expect("Failed to initialize StableVec")
+        }
+    );
+}
 
 #[update]
 fn login(principal: Principal, role: String) -> Result<Principal, String> {
@@ -126,7 +145,7 @@ fn add_data_request(description: String, reward: u64) -> u64 {
 }
 
 #[update]
-fn submit_data(principal: Principal, request_id: u64, location: String) -> Result<u64, String> {
+fn submit_data(principal: Principal, request_id: u64, data: Vec<String>) -> Result<u64, String> {
     STATE.with(|state| {
         let mut state = state.borrow_mut();
         if state.data_requests.iter().any(|r| r.id == request_id) {
@@ -136,10 +155,24 @@ fn submit_data(principal: Principal, request_id: u64, location: String) -> Resul
                 id: submission_id,
                 request_id,
                 provider: principal,
-                location,
+                location: format!("Submission ID: {}", submission_id),
                 verified: false,
                 verifier: None,
             });
+
+            CSV_STORAGE.with(|storage| {
+                let mut storage = storage.borrow_mut();
+                for line in data {
+                    storage.push(&CsvLine(line)).expect("Failed to store CSV line");
+                }
+            });
+
+            ic_cdk::println!(
+                "Data submitted by {:?} for request_id: {} with submission_id: {}",
+                principal,
+                request_id,
+                submission_id
+            );
             Ok(submission_id)
         } else {
             Err("Request ID not found".to_string())
@@ -230,6 +263,34 @@ fn get_cleaned_data(request_id: u64) -> Option<CleanedData> {
         state.borrow().cleaned_data.get(&request_id).cloned()
     })
 }
+
+#[query]
+fn get_data(submission_id: u64) -> Result<Vec<String>, String> {
+    let caller = ic_cdk::caller();
+
+    STATE.with(|state| {
+        let state = state.borrow();
+
+        if let Some(submission) = state.data_submissions.iter().find(|s| s.id == submission_id) {
+            if submission.provider == caller || state.users.get(&caller).map(|u| &u.role) == Some(&"Researcher".to_string()) {
+                
+                return CSV_STORAGE.with(|storage| {
+                    let storage = storage.borrow();
+                    let data: Vec<String> = storage
+                        .iter()
+                        .map(|csv_line| csv_line.0.clone())
+                        .collect();
+                    Ok(data)
+                });
+            } else {
+                return Err("Access denied".to_string());
+            }
+        } else {
+            Err("Submission ID not found".to_string())
+        }
+    })
+}
+
 
 
 #[query]
