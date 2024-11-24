@@ -1,7 +1,7 @@
 use candid::{CandidType, Deserialize, Principal};
-use std::{collections::HashMap, ops::Range, rc::Rc};
-use ic_cdk::{api::stable::StableMemory, query, update};
-use ic_stable_structures::{ memory_manager::{MemoryId, MemoryManager, VirtualMemory}, storable::Bound, BTreeMap, DefaultMemoryImpl, Memory, RestrictedMemory, StableBTreeMap, StableVec, Storable };
+use std::{collections::HashMap, ops::Range};
+use ic_cdk::{query, update};
+use ic_stable_structures::{ memory_manager::{MemoryId, MemoryManager, VirtualMemory}, storable::Bound, DefaultMemoryImpl, StableBTreeMap, Storable };
 use std::cell::RefCell;
 use std::borrow::Cow;
 
@@ -17,6 +17,7 @@ struct DataRequest {
     id: u64,
     description: String,
     reward: u64,
+    creator: Principal,
 }
 
 #[derive(CandidType, Deserialize, Clone)]
@@ -146,8 +147,25 @@ fn get_data_requests() -> Vec<DataRequest> {
     STATE.with(|state| state.borrow().data_requests.clone())
 }
 
+#[query]
+fn get_my_data_requests() -> Vec<DataRequest> {
+    let caller = ic_cdk::caller();
+
+    STATE.with(|state| {
+        let state = state.borrow();
+
+        state
+            .data_requests
+            .iter()
+            .filter(|request| request.creator == caller)
+            .cloned()
+            .collect()
+    })
+}
+
 #[update]
 fn add_data_request(description: String, reward: u64) -> u64 {
+    let caller = ic_cdk::caller();
     STATE.with(|state| {
         let mut state = state.borrow_mut();
         let request_id = state.next_request_id;
@@ -156,6 +174,7 @@ fn add_data_request(description: String, reward: u64) -> u64 {
             id: request_id,
             description,
             reward,
+            creator: caller
         });
         request_id
     })
@@ -212,6 +231,23 @@ fn submit_data(principal: Principal, request_id: u64, data: Vec<String>) -> Resu
         }
     })
 }
+
+#[query]
+fn get_my_submissions() -> Vec<DataSubmission> {
+    let caller = ic_cdk::caller();
+
+    STATE.with(|state| {
+        let state = state.borrow();
+
+        state
+            .data_submissions
+            .iter()
+            .filter(|submission| submission.provider == caller)
+            .cloned()
+            .collect()
+    })
+}
+
 
 #[update]
 fn verify_data(principal: Principal, submission_id: u64) -> Result<(), String> {

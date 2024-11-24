@@ -8,6 +8,7 @@ type DataRequest = record {
   id: nat64;
   description: text;
   reward: nat64;
+  creator: principal;
 };
 
 type DataSubmission = record {
@@ -36,4 +37,6 @@ service : {
   "get_cleaned_data": (nat64) -> (opt CleanedData) query;
   "get_data": (nat64) -> (variant { Ok: vec text; Err: text }) query;
   "get_balance": (principal) -> (nat64) query;
+  "get_my_data_requests": () -> (vec DataRequest) query;
+  "get_my_submissions": () -> (vec DataSubmission) query;
 };
