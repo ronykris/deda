@@ -26,25 +26,27 @@ const StoreCleanedData: React.FC = () => {
   };
 
   return (
-    <div className="p-4">
-      <h2 className="text-2xl font-bold mb-4">Store Cleaned Data</h2>
-      <input
-        type="number"
-        placeholder="Request ID"
-        value={requestId}
-        onChange={(e) => setRequestId(e.target.value)}
-        className="p-2 border rounded mb-2"
-      />
-      <input
-        type="text"
-        placeholder="Data Location"
-        value={location}
-        onChange={(e) => setLocation(e.target.value)}
-        className="p-2 border rounded mb-2"
-      />
-      <button onClick={storeCleanedData} className="px-4 py-2 bg-green-500 text-white rounded">
-        Store Data
-      </button>
+    <div className="p-4 rounded-md shadow">
+      <h2 className="text-2xl font-bold mb-6">Store Cleaned Data</h2>
+      <div className='flex flex-col gap-3'>
+        <input
+          type="number"
+          placeholder="Request ID"
+          value={requestId}
+          onChange={(e) => setRequestId(e.target.value)}
+          className="p-2 border rounded mb-2"
+        />
+        <input
+          type="text"
+          placeholder="Data Location"
+          value={location}
+          onChange={(e) => setLocation(e.target.value)}
+          className="p-2 border rounded mb-2"
+        />
+        <button onClick={storeCleanedData} className="px-4 py-2 bg-green-500 text-white rounded">
+          Store Data
+        </button>
+      </div>
       {response && <div className="mt-4">{response}</div>}
     </div>
   );
