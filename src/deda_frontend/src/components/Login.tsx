@@ -6,6 +6,8 @@ import { idlFactory as deda_backend_idl } from '../../../declarations/deda_backe
 import { Principal } from '@dfinity/principal';
 import { AuthClient } from '@dfinity/auth-client';
 import Header from './Header';
+import { storeUser } from '../lib/cacheFunctions';
+import { useNavigate } from 'react-router-dom';
 
 const canisterId = process.env.CANISTER_ID_DEDA_BACKEND as string;
 
@@ -21,6 +23,8 @@ const Login: React.FC = () => {
   const [user, setUser] = useRecoilState(userState);
   const [loading, setLoading] = useState(false);
   const [role, setRole] = useState<'User' | 'Validator' | 'Researcher'>('User');
+
+  const navigate = useNavigate();
 
   const login = async () => {
     setLoading(true);
@@ -43,19 +47,25 @@ const Login: React.FC = () => {
           try {
             const balance = (await backend.get_balance(principal)) as unknown as number;
             console.log(balance)
+
             const result = await backend.login(principal, role);
             console.log(result);
+            console.log({ id: principal, balance, role })
             setUser({ id: principal, balance, role });
+            storeUser({ id: principal, balance, role });
+
+            navigate('/dashboard'); 
+
           } catch (e) {
             console.error('Error fetching balance or logging in:', e);
           }
 
         },
       });
-      /*if (await authClient.isAuthenticated()) {
-        
-        
-      }*/
+      // if (await authClient.isAuthenticated()) {
+
+
+      // }
       /*if ('Err' in result) {
         throw new Error(result.Err);
       }*/
@@ -65,6 +75,8 @@ const Login: React.FC = () => {
     }
     setLoading(false);
   };
+
+  console.log(user.id);
 
   return (
     <div className='relative px-6 lg:px-8 mx-auto max-w-2xl lg:max-w-7xl'>
@@ -101,13 +113,13 @@ const Login: React.FC = () => {
                   {loading ? 'Logging in...' : 'Login with Internet Identity'}
                 </button>
               </form>
-              {user.id && (
+              {/* {user.id && (
                 <div className="mt-4">
                   Logged in as: {user.id.toString()} <br />
                   Role: {user.role} <br />
                   Balance: {user.balance.toString()}
                 </div>
-              )}
+              )} */}
             </div>
           </div>
         </div>

@@ -25,8 +25,8 @@ const PayContributors: React.FC = () => {
   };
 
   return (
-    <div className="p-4">
-      <h2 className="text-2xl font-bold mb-4">Pay Contributors</h2>
+    <div className="p-4 rounded-md shadow my-4 bg-white">
+      <h2 className="text-2xl font-semibold mb-6">Pay Contributors</h2>
       <input
         type="number"
         placeholder="Submission ID"
@@ -34,7 +34,7 @@ const PayContributors: React.FC = () => {
         onChange={(e) => setSubmissionId(e.target.value)}
         className="p-2 border rounded mb-2"
       />
-      <button onClick={payContributors} className="px-4 py-2 bg-purple-500 text-white rounded">
+      <button onClick={payContributors} className="px-4 py-2 bg-purple-500 text-white rounded ml-4">
         Pay
       </button>
       {response && <div className="mt-4">{response}</div>}
