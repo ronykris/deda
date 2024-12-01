@@ -11,7 +11,7 @@ import { useNavigate } from 'react-router-dom';
 
 const canisterId = process.env.CANISTER_ID_DEDA_BACKEND as string;
 
-const agent = new HttpAgent();
+const agent = new HttpAgent({host: "http://127.0.0.1:4943"});
 agent.fetchRootKey().catch(err => {
   console.warn('Unable to fetch root key. Check to ensure that your local replica is running');
   console.error(err);
