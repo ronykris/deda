@@ -5,8 +5,11 @@ import { useRecoilValue } from 'recoil';
 import { userState } from '../state/userState';
 import { Actor, HttpAgent } from '@dfinity/agent';
 import { idlFactory } from '../../../declarations/deda_backend';
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { Principal } from "@dfinity/principal";
+import { RefreshCw } from "lucide-react"
+import { DataRequest } from "../types";
+import UploadDataCard from "./uploadDataCard";
 
 const agent = new HttpAgent();
 agent.fetchRootKey().catch(err => {
@@ -31,6 +34,9 @@ function SubmitDataNew() {
   const [location, setLocation] = useState<string>('');
   const [response, setResponse] = useState<string>('');
   const [myDataSubmissions, setMyDataSubmissions] = useState<DataSubmission[]>([]);
+  const [allDataRequests, setAllDataRequests] = useState<DataRequest[]>([]);
+  const [loadingDataRequest, setLoadingDataRequest] = useState<boolean>(false)
+  const [loadingDataSubmission, setLoadingDataSubmission] = useState<boolean>(false)
 
   const submitData = async () => {
     try {
@@ -52,17 +58,38 @@ function SubmitDataNew() {
 
   const getMyDataSubmissions = async () => {
     try {
+      setLoadingDataRequest(true)
       const submissions = await backend.get_my_submissions();
       // setMyDataSubmissions(submissions);
       console.log(submissions);
+      setLoadingDataRequest(false)
     } catch (error) {
       console.error(error);
+      setLoadingDataRequest(false)
     }
   }
 
+  const getDataRequests = async () => {
+    try {
+      setLoadingDataRequest(true)
+      const dataRequests = await backend.get_data_requests();
+      setAllDataRequests(dataRequests as DataRequest[]);
+      console.log(dataRequests);
+      setLoadingDataRequest(false)
+    } catch (error) {
+      console.error(error);
+      setLoadingDataRequest(false)
+    }
+  }
+
+  useEffect(() => {
+    getMyDataSubmissions();
+    getDataRequests();
+}, []); 
+
   return (
     <div className="space-y-4 py-16">
-      <Card className="bg-white bg-opacity-50 border-none items-center flex flex-col m-auto py-6">
+      {/* <Card className="bg-white bg-opacity-50 border-none items-center flex flex-col m-auto py-6">
         <CardHeader>
           <CardTitle className="text-2xl">Submit Data</CardTitle>
         </CardHeader>
@@ -86,11 +113,35 @@ function SubmitDataNew() {
           </Button>
           {response && <div className="mt-4">{response}</div>}
         </CardContent>
+      </Card> */}
+      <Card className="bg-[#fff5e8] bg-opacity-50 border-none">
+        <CardHeader className="pb-2">
+          <CardTitle className="text-xl">
+            <span>Data Requests</span>
+            <Button onClick={getDataRequests} className="bg-[#F05B24] hover:bg-[#28AAE2] transition-colors p-1 h-6 ml-2">
+              <RefreshCw size={20} className={`${loadingDataRequest ? 'animate-spin' : ''}`} />
+            </Button>
+          </CardTitle>
+        </CardHeader>
+        <CardContent>
+          <ul className="space-y-2">
+            {allDataRequests.map((request: DataRequest) => {
+              return (
+                <UploadDataCard request={request} key={request.id} />
+              )
+            })}
+          </ul>
+        </CardContent>
       </Card>
       {response && <div className="mt-4 rounded-md shadow-sm p-4">{response}</div>}
-      <Card className="bg-white bg-opacity-50 border-none">
-        <CardHeader>
-          <CardTitle>Your Previous Requests</CardTitle>
+      <Card className="bg-[#fff5e8] bg-opacity-50 border-none">
+        <CardHeader className="pb-2">
+          <CardTitle className="text-xl">
+            <span>Your Previous Submissions</span>
+            <Button onClick={getMyDataSubmissions} className="bg-[#F05B24] hover:bg-[#28AAE2] transition-colors p-1 h-6 ml-2">
+              <RefreshCw size={20} className={`${loadingDataSubmission ? 'animate-spin' : ''}`} />
+            </Button>
+          </CardTitle>
         </CardHeader>
         <CardContent>
           <ul className="space-y-2">
@@ -106,9 +157,6 @@ function SubmitDataNew() {
               )
             })}
           </ul>
-          <Button onClick={getMyDataSubmissions} className="bg-[#F05B24] hover:bg-[#28AAE2] transition-colors mt-4">
-            Get Previous Submissions
-          </Button>
         </CardContent>
       </Card>
     </div>
