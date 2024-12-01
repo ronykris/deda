@@ -8,10 +8,11 @@ import {
     CardTitle,
 } from "./ui/card";
 import { Textarea } from "./ui/textarea";
-import React, { ButtonHTMLAttributes, useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { Actor, HttpAgent } from '@dfinity/agent';
 import { idlFactory } from '../../../declarations/deda_backend';
 import { Principal } from "@dfinity/principal";
+import { RefreshCw } from "lucide-react";
 
 const agent = new HttpAgent();
 agent.fetchRootKey().catch(err => {
@@ -33,6 +34,7 @@ function ResearcherDashboard() {
     const [reward, setReward] = useState<string>('');
     const [response, setResponse] = useState<string>('');
     const [myDataRequests, setMyDataRequests] = useState<DataRequest[]>([]);
+    const [loadingDataRequest, setLoadingDataRequest] = useState<boolean>(false)
 
     const addDataRequest = async (e: React.MouseEvent<HTMLButtonElement>) => {
         e.preventDefault();
@@ -46,20 +48,26 @@ function ResearcherDashboard() {
         }
     };
 
-    const getMyDataRequests = async (e: React.MouseEvent<HTMLButtonElement>) => {
-        e.preventDefault();
+    const getMyDataRequests = async () => {
         try {
+            setLoadingDataRequest(true)
             const requests = await backend.get_my_data_requests();
             setMyDataRequests(requests as DataRequest[]);
             console.log(requests);
+            setLoadingDataRequest(false)
         } catch (error) {
             console.error(error);
+            setLoadingDataRequest(false)
         }
     }
 
+    useEffect(() => {
+        getMyDataRequests();
+    }, []); 
+
     return (
         <div className="space-y-4 py-16">
-            <Card className="bg-white bg-opacity-50 border-none">
+            <Card className="bg-[#fff5e8] bg-opacity-50 border-none">
                 <CardHeader>
                     <CardTitle>Request New Dataset</CardTitle>
                     <CardDescription>
@@ -90,15 +98,20 @@ function ResearcherDashboard() {
                 </CardContent>
             </Card>
             {response && <div className="mt-4 rounded-md shadow-sm p-4">{response}</div>}
-            <Card className="bg-white bg-opacity-50 border-none">
-                <CardHeader>
-                    <CardTitle>Your Previous Requests</CardTitle>
+            <Card className="bg-[#fff5e8] bg-opacity-50 border-none">
+                <CardHeader className="pb-2">
+                    <CardTitle className="text-xl">
+                        <span>Your Previous Requests</span>
+                        <Button onClick={getMyDataRequests} className="bg-[#F05B24] hover:bg-[#28AAE2] transition-colors p-1 h-6 ml-2">
+                            <RefreshCw size={20} className={`${loadingDataRequest ? 'animate-spin' : ''}`} />
+                        </Button>
+                    </CardTitle>
                 </CardHeader>
                 <CardContent>
                     <ul className="space-y-2">
                         {myDataRequests.map((request: DataRequest) => {
                             return (
-                                <div className="border-b-2 shadow border-black rounded-sm p-2">
+                                <div key={request.id} className="border-b-2 shadow border-black rounded-sm p-2">
                                     <div className="text-lg font-semibold mb-4">{request.description}</div>
                                     <div>
                                         <span className="text-base text-gray-700 mr-4">Request ID: {Number(request.id)}</span>
@@ -108,9 +121,6 @@ function ResearcherDashboard() {
                             )
                         })}
                     </ul>
-                    <Button onClick={getMyDataRequests} className="bg-[#F05B24] hover:bg-[#28AAE2] transition-colors mt-4">
-                        Get Previous Requests
-                    </Button>
                 </CardContent>
             </Card>
         </div>
