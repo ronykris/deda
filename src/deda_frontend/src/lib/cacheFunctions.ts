@@ -50,3 +50,7 @@ export function retrieveUser(): User | null {
     );
 
 }
+
+export const clearUser = () => {
+    localStorage.removeItem(STORAGE_KEY);
+};
