@@ -31,7 +31,7 @@ const Dashboard: React.FC = () => {
                             <StoreCleanedData />
                         </>
                     )}
-                    <PayContributors />
+                    {/*<PayContributors />*/}
                 </div>
             </div>
         </main>

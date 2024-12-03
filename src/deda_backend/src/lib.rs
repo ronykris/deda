@@ -83,7 +83,7 @@ impl Storable for SubmissionData {
     }
 
     const BOUND: Bound = Bound::Bounded {
-        max_size: 1024,
+        max_size: 1000000000,
         is_fixed_size: false,
     };    
 }
@@ -198,9 +198,9 @@ fn submit_data(principal: Principal, request_id: u64, data: Vec<String>) -> Resu
 
             let submission_data = SubmissionData(data.clone());
             let size = submission_data.to_bytes().len();
-            if size > 10_000 { // Adjust limit based on memory range
-                return Err(format!("Data size exceeds limit: {} bytes", size));
-            }
+            //if size > 10_000 { // Adjust limit based on memory range
+            //    return Err(format!("Data size exceeds limit: {} bytes", size));
+            //}
 
             SUBMISSION_DATA.with(|storage| -> Result<(), String> {
                 let mut storage = storage.borrow_mut();
