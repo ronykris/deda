@@ -62,7 +62,7 @@ const UploadDataCard: React.FC<{ request: DataRequest }> = ({ request }) => {
                 const currentPrincipal = (await getCurrentPrincipal())!
                 console.log('Current principal: ', currentPrincipal)
                 console.log('Submitting Data...')
-                const subId = await backend.submit_data(currentPrincipal, request.id, formattedData)
+                const subId = await backend.submit_data(request.id, formattedData)
                 console.log('Submission ID: ', subId)
             }
             reader.readAsText(file)

@@ -60,8 +60,8 @@ function SubmitDataNew() {
     try {
       setLoadingDataRequest(true)
       const submissions = await backend.get_my_submissions();
-      // setMyDataSubmissions(submissions);
-      console.log(submissions);
+      setMyDataSubmissions(submissions as DataSubmission[]);
+      console.log("Updated my submissions: ", submissions);
       setLoadingDataRequest(false)
     } catch (error) {
       console.error(error);
@@ -135,7 +135,6 @@ function SubmitDataNew() {
       </Card>
       {response && <div className="mt-4 rounded-md shadow-sm p-4">{response}</div>}
       <Card className="bg-[#fff5e8] bg-opacity-50 border-none">
-        <CardHeader className="pb-2">
           <CardTitle className="text-xl">
             <span>Your Previous Submissions</span>
             <Button onClick={getMyDataSubmissions} className="bg-[#F05B24] hover:bg-[#28AAE2] transition-colors p-1 h-6 ml-2">
@@ -147,10 +146,11 @@ function SubmitDataNew() {
           <ul className="space-y-2">
             {myDataSubmissions.map((request: DataSubmission) => {
               return (
-                <div className="border-b-2 shadow border-black rounded-sm p-2">
-                  <div className="text-lg font-semibold mb-4">{request.request_id}</div>
+                <div key={request.id} className="border-b-2 shadow border-black rounded-sm p-2">
+                  {/*<div className="text-lg font-semibold mb-4">{request.request_id}</div>*/}
                   <div>
-                    <span className="text-base text-gray-700 mr-4">Location: {request.location}</span>
+                    <span className="text-base text-gray-700 mr-4">Request ID: {request.request_id.toString()}</span>
+                    <span className="text-base text-gray-700 mr-4">{request.location}</span>
                     <span className="text-base text-gray-700">Verified: {request.verified}</span>
                   </div>
                 </div>

@@ -181,7 +181,8 @@ fn add_data_request(description: String, reward: u64) -> u64 {
 }
 
 #[update]
-fn submit_data(principal: Principal, request_id: u64, data: Vec<String>) -> Result<u64, String> {
+fn submit_data(request_id: u64, data: Vec<String>) -> Result<u64, String> {
+    let caller = ic_cdk::caller();
     STATE.with(|state| {
         let mut state = state.borrow_mut();
         if state.data_requests.iter().any(|r| r.id == request_id) {
@@ -190,7 +191,7 @@ fn submit_data(principal: Principal, request_id: u64, data: Vec<String>) -> Resu
             state.data_submissions.push(DataSubmission {
                 id: submission_id,
                 request_id,
-                provider: principal,
+                provider: caller,
                 location: format!("Submission ID: {}", submission_id),
                 verified: false,
                 verifier: None,
@@ -220,7 +221,7 @@ fn submit_data(principal: Principal, request_id: u64, data: Vec<String>) -> Resu
 
             ic_cdk::println!(
                 "Data submitted by {:?} for request_id: {} with submission_id: {}",
-                principal,
+                caller,
                 request_id,
                 submission_id
             );
@@ -235,7 +236,7 @@ fn submit_data(principal: Principal, request_id: u64, data: Vec<String>) -> Resu
 #[query]
 fn get_my_submissions() -> Vec<DataSubmission> {
     let caller = ic_cdk::caller();
-
+    ic_cdk::println!("Fetching submission for user: {:?}", caller);
     STATE.with(|state| {
         let state = state.borrow();
 
