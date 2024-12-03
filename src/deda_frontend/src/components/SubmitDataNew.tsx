@@ -135,6 +135,7 @@ function SubmitDataNew() {
       </Card>
       {response && <div className="mt-4 rounded-md shadow-sm p-4">{response}</div>}
       <Card className="bg-[#fff5e8] bg-opacity-50 border-none">
+        <CardHeader className="pb-2">
           <CardTitle className="text-xl">
             <span>Your Previous Submissions</span>
             <Button onClick={getMyDataSubmissions} className="bg-[#F05B24] hover:bg-[#28AAE2] transition-colors p-1 h-6 ml-2">
