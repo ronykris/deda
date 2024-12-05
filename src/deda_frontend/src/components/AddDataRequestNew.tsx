@@ -14,7 +14,7 @@ import { idlFactory } from '../../../declarations/deda_backend';
 import { Principal } from "@dfinity/principal";
 import { RefreshCw } from "lucide-react";
 
-const agent = new HttpAgent();
+const agent = new HttpAgent({host: `http://${process.env.CANISTER_ID_DEDA_FRONTEND}.localhost:4943/`});
 agent.fetchRootKey().catch(err => {
     console.warn('Unable to fetch root key. Check to ensure that your local replica is running');
     console.error(err);

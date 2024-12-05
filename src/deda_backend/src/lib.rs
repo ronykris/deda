@@ -267,6 +267,11 @@ fn verify_data(principal: Principal, submission_id: u64) -> Result<(), String> {
     })
 }
 
+#[query]
+fn get_submissions() -> Vec<DataSubmission> {
+    STATE.with(|state| state.borrow().data_submissions.clone())
+}
+
 #[update]
 fn pay_contributors(submission_id: u64) -> Result<(), String> {
     let (provider_principal, verifier_principal, provider_reward, verifier_reward) = STATE.with(|state| {

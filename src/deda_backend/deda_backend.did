@@ -39,4 +39,5 @@ service : {
   "get_balance": (principal) -> (nat64) query;
   "get_my_data_requests": () -> (vec DataRequest) query;
   "get_my_submissions": () -> (vec DataSubmission) query;
+  "get_submissions": () -> (vec DataSubmission) query;
 };
