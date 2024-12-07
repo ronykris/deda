@@ -42,6 +42,10 @@ function ResearcherDashboard() {
             const requestId = await backend.add_data_request(description, BigInt(reward));
             console.log(requestId);
             setResponse(`Data request added successfully with ID: ${requestId}`);
+            getMyDataRequests();
+
+            setDescription('');
+            setReward('');
         } catch (error) {
             console.error(error)
             setResponse('Error adding data request');
@@ -83,12 +87,14 @@ function ResearcherDashboard() {
                         <Textarea
                             placeholder="Description"
                             className="bg-grey bg-opacity-10 border-none"
+                            value={description}
                             onChange={(e) => setDescription(e.target.value)}
                         />
                         <Input
                             placeholder="Reward Amount (ICP)"
                             type="number"
                             className="bg-grey bg-opacity-10 border-none"
+                            value={reward}
                             onChange={(e) => setReward(e.target.value)}
                         />
                         <Button onClick={addDataRequest} className="bg-[#F05B24] hover:bg-[#28AAE2] transition-colors">

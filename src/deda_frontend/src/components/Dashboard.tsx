@@ -18,7 +18,7 @@ const Dashboard: React.FC = () => {
     const user = useRecoilValue(userState);
 
     return (
-        <main className='bg-[#fffaf3]'>
+        <main className='bg-[#fffaf3] min-h-screen'>
             <div className='relative px-6 lg:px-8 mx-auto max-w-2xl lg:max-w-7xl '>
                 <Header />
                 <div className='relative px-6 lg:px-8 mx-auto max-w-2xl z-10'>
