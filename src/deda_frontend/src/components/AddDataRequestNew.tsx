@@ -12,9 +12,9 @@ import React, { useEffect, useState } from 'react';
 import { Actor, HttpAgent } from '@dfinity/agent';
 import { idlFactory } from '../../../declarations/deda_backend';
 import { Principal } from "@dfinity/principal";
-import { RefreshCw } from "lucide-react";
+import { RefreshCw, Download } from "lucide-react";
 
-const agent = new HttpAgent({host: `http://${process.env.CANISTER_ID_DEDA_FRONTEND}.localhost:4943/`});
+const agent = new HttpAgent({ host: `http://${process.env.CANISTER_ID_DEDA_FRONTEND}.localhost:4943/` });
 agent.fetchRootKey().catch(err => {
     console.warn('Unable to fetch root key. Check to ensure that your local replica is running');
     console.error(err);
@@ -28,6 +28,14 @@ interface DataRequest {
     creator: Principal;
 }
 
+type DataSubmission = {
+    id: bigint;
+    location: string;
+    provider: Principal;
+    request_id: bigint;
+    verified: boolean;
+};
+
 function ResearcherDashboard() {
 
     const [description, setDescription] = useState<string>('');
@@ -35,6 +43,7 @@ function ResearcherDashboard() {
     const [response, setResponse] = useState<string>('');
     const [myDataRequests, setMyDataRequests] = useState<DataRequest[]>([]);
     const [loadingDataRequest, setLoadingDataRequest] = useState<boolean>(false)
+    const [dataSubmission, setDataSubmission] = useState<DataSubmission[]>([]);
 
     const addDataRequest = async (e: React.MouseEvent<HTMLButtonElement>) => {
         e.preventDefault();
@@ -55,9 +64,12 @@ function ResearcherDashboard() {
     const getMyDataRequests = async () => {
         try {
             setLoadingDataRequest(true)
+            getDataSubmissions();
+
             const requests = await backend.get_my_data_requests();
             setMyDataRequests(requests as DataRequest[]);
             console.log(requests);
+
             setLoadingDataRequest(false)
         } catch (error) {
             console.error(error);
@@ -65,9 +77,31 @@ function ResearcherDashboard() {
         }
     }
 
+    const getDataSubmissions = async () => {
+        try {
+            const submissions: DataSubmission[] = await backend.get_submissions() as DataSubmission[];
+            console.log("Updated my submissions: ", submissions);
+            setDataSubmission(submissions);
+
+        } catch (error) {
+            console.error(error);
+        }
+    }
+
+    const downloadData = async (submissionId: unknown) => {
+        try {
+            console.log('Downloading data for submission ID: ', submissionId);
+            const submissions = await backend.get_data(submissionId);
+
+        } catch (error) {
+            console.error(error);
+        }
+    }
+
     useEffect(() => {
         getMyDataRequests();
-    }, []); 
+        getDataSubmissions();
+    }, []);
 
     return (
         <div className="space-y-4 py-16">
@@ -80,10 +114,6 @@ function ResearcherDashboard() {
                 </CardHeader>
                 <CardContent>
                     <form className="space-y-4 bg-grey">
-                        {/* <Input
-              placeholder="Dataset Title"
-              className="bg-grey bg-opacity-10 border-none"
-            /> */}
                         <Textarea
                             placeholder="Description"
                             className="bg-grey bg-opacity-10 border-none"
@@ -116,9 +146,23 @@ function ResearcherDashboard() {
                 <CardContent>
                     <ul className="space-y-2">
                         {myDataRequests.map((request: DataRequest) => {
+
+                            const submissionsForRequest = dataSubmission.filter(submission => submission.request_id === BigInt(request.id));
+                            const location = submissionsForRequest[0]["location"].split(': ')[1]
+
                             return (
                                 <div key={request.id} className="border-b-2 shadow border-black rounded-sm p-2">
-                                    <div className="text-lg font-semibold mb-4">{request.description}</div>
+                                    <div className="text-lg font-semibold flex justify-between mb-4">
+                                        {request.description}
+                                        {submissionsForRequest &&
+                                            <button
+                                                className="bg-[#F05B24] hover:bg-[#28AAE2] flex gap-1 transition-colors text-white p-1 rounded-md"
+                                                onClick={() => downloadData(location)}
+                                            >
+                                                <Download />
+                                            </button>
+                                        }
+                                    </div>
                                     <div>
                                         <span className="text-base text-gray-700 mr-4">Request ID: {Number(request.id)}</span>
                                         <span className="text-base text-gray-700">Reward: {Number(request.reward)} ICP</span>

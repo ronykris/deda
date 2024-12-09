@@ -157,6 +157,7 @@ const UploadDataCard: React.FC<{ request: DataRequest }> = ({ request }) => {
                                 {submissionId != null &&
                                     <button
                                         className="mt-2 bg-[#F05B24] hover:bg-[#28AAE2] flex gap-1 transition-colors text-white py-2 px-3 rounded-md"
+                                        disabled={true}
                                     >
                                         {submissionId != null && <p>Submitted!!</p>}
                                     </button>

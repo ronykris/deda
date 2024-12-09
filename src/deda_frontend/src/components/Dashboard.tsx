@@ -1,21 +1,23 @@
-import React from 'react';
+import React, { useEffect } from 'react';
 import { RecoilRoot, useRecoilValue } from 'recoil';
-import Login from './Login';
-import DataRequestList from './DataRequestList';
-import SubmitData from './SubmitData';
 import VerifyData from './VerifyData';
 import StoreCleanedData from './StoreCleanedData';
-import AddDataRequest from './AddDataRequest';
-import PayContributors from './PayContributors';
-//import './App.css';
 import { userState } from '../state/userState';
 import SubmitDataNew from './SubmitDataNew';
 import Header from './Header';
 import AddDataRequestNew from './AddDataRequestNew';
+import { useNavigate } from 'react-router-dom';
 
 const Dashboard: React.FC = () => {
 
     const user = useRecoilValue(userState);
+    const navigate = useNavigate();
+
+    useEffect(() => {
+        if (!user.id) {
+            navigate('/login');
+        }
+    }, [user, navigate]);
 
     return (
         <main className='bg-[#fffaf3] min-h-screen'>
