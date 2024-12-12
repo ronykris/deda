@@ -88,11 +88,24 @@ function ResearcherDashboard() {
         }
     }
 
-    const downloadData = async (submissionId: unknown) => {
+    const parseVecToCsvFormat = (vecContent: string[]): string => {
+        const csvContent = vecContent.map((line) => line.replace(/^"|"$/g, '')).join("\n");
+        return csvContent;
+    };
+
+    const downloadData = async (submissionId: string) => {
         try {
             console.log('Downloading data for submission ID: ', submissionId);
-            const submissions = await backend.get_data(submissionId);
-
+            const submissions: { Ok: string[] } = await backend.get_data(BigInt(submissionId)) as { Ok: string[] };
+            const csvContent = parseVecToCsvFormat(submissions['Ok']);
+            const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+            const url = URL.createObjectURL(blob);
+            const link = document.createElement('a');
+            link.setAttribute('href', url);
+            link.setAttribute('download', `submission_${submissionId}.csv`);
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
         } catch (error) {
             console.error(error);
         }
@@ -145,10 +158,10 @@ function ResearcherDashboard() {
                 </CardHeader>
                 <CardContent>
                     <ul className="space-y-2">
-                        {myDataRequests.map((request: DataRequest) => {
+                        {myDataRequests.length > 0 && (myDataRequests.map((request: DataRequest) => {
 
                             const submissionsForRequest = dataSubmission.filter(submission => submission.request_id === BigInt(request.id));
-                            const location = submissionsForRequest[0]["location"].split(': ')[1]
+                            const location = submissionsForRequest.length > 0 ? submissionsForRequest[0]["location"].split(': ')[1] : ''
 
                             return (
                                 <div key={request.id} className="border-b-2 shadow border-black rounded-sm p-2">
@@ -156,8 +169,9 @@ function ResearcherDashboard() {
                                         {request.description}
                                         {submissionsForRequest &&
                                             <button
-                                                className="bg-[#F05B24] hover:bg-[#28AAE2] flex gap-1 transition-colors text-white p-1 rounded-md"
+                                                className="bg-[#F05B24] disabled:opacity-50 hover:bg-[#28AAE2] flex gap-1 transition-colors text-white p-1 rounded-md"
                                                 onClick={() => downloadData(location)}
+                                                disabled={location.length === 0}
                                             >
                                                 <Download />
                                             </button>
@@ -169,7 +183,7 @@ function ResearcherDashboard() {
                                     </div>
                                 </div>
                             )
-                        })}
+                        }))}
                     </ul>
                 </CardContent>
             </Card>
