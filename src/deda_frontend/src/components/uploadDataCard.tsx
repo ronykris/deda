@@ -21,7 +21,7 @@ import { Principal } from '@dfinity/principal';
 
 const canisterId = process.env.CANISTER_ID_DEDA_BACKEND as string;
 
-const agent = new HttpAgent({ host: `http://${process.env.CANISTER_ID_DEDA_FRONTEND}.localhost:4943/` });
+const agent = new HttpAgent({ host: `http://localhost:4943/?canisterId=${process.env.CANISTER_ID_DEDA_FRONTEND}` });
 agent.fetchRootKey().catch(err => {
     console.warn('Unable to fetch root key. Check to ensure that your local replica is running');
     console.error(err);
