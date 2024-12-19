@@ -44,10 +44,12 @@ function ResearcherDashboard() {
     const [myDataRequests, setMyDataRequests] = useState<DataRequest[]>([]);
     const [loadingDataRequest, setLoadingDataRequest] = useState<boolean>(false)
     const [dataSubmission, setDataSubmission] = useState<DataSubmission[]>([]);
+    const [loadingDataSubmission, setLoadingDataSubmission] = useState<boolean>(false)
 
     const addDataRequest = async (e: React.MouseEvent<HTMLButtonElement>) => {
         e.preventDefault();
         try {
+            setLoadingDataSubmission(true)
             const requestId = await backend.add_data_request(description, BigInt(reward));
             console.log(requestId);
             setResponse(`Data request added successfully with ID: ${requestId}`);
@@ -55,9 +57,11 @@ function ResearcherDashboard() {
 
             setDescription('');
             setReward('');
+            setLoadingDataSubmission(false)
         } catch (error) {
             console.error(error)
             setResponse('Error adding data request');
+            setLoadingDataSubmission(false)
         }
     };
 
@@ -118,9 +122,9 @@ function ResearcherDashboard() {
 
     return (
         <div className="space-y-4 py-16">
-            <Card className="bg-[#fff5e8] bg-opacity-50 border-none">
+            <Card className="bg-[#fff5e8] bg-opacity-50 border-none shadow-md">
                 <CardHeader>
-                    <CardTitle>Request New Dataset</CardTitle>
+                    <CardTitle className="text-xl">Request New Dataset</CardTitle>
                     <CardDescription>
                         Specify your data requirements and set a reward
                     </CardDescription>
@@ -140,14 +144,14 @@ function ResearcherDashboard() {
                             value={reward}
                             onChange={(e) => setReward(e.target.value)}
                         />
-                        <Button onClick={addDataRequest} className="bg-[#F05B24] hover:bg-[#28AAE2] transition-colors">
-                            Submit Request
+                        <Button onClick={addDataRequest} disabled={loadingDataSubmission} className="bg-[#F05B24] hover:bg-[#28AAE2] transition-colors">
+                            {loadingDataSubmission ? "Submitting..." : "Submit Request"}
                         </Button>
                     </form>
                 </CardContent>
             </Card>
             {response && <div className="mt-4 rounded-md shadow-sm p-4">{response}</div>}
-            <Card className="bg-[#fff5e8] bg-opacity-50 border-none">
+            <Card className="bg-[#fff5e8] bg-opacity-50 border-none shadow-md">
                 <CardHeader className="pb-2">
                     <CardTitle className="text-xl">
                         <span>Your Previous Requests</span>
@@ -157,14 +161,14 @@ function ResearcherDashboard() {
                     </CardTitle>
                 </CardHeader>
                 <CardContent>
-                    <ul className="space-y-2">
+                    <ul className="space-y-3">
                         {myDataRequests.length > 0 && (myDataRequests.map((request: DataRequest) => {
 
                             const submissionsForRequest = dataSubmission.filter(submission => submission.request_id === BigInt(request.id));
                             const location = submissionsForRequest.length > 0 ? submissionsForRequest[0]["location"].split(': ')[1] : ''
 
                             return (
-                                <div key={request.id} className="border-b-2 shadow border-black rounded-sm p-2">
+                                <div key={request.id} className="border-b-2 bg-[#fffaf3] shadow-md border-b-black rounded-sm p-2">
                                     <div className="text-lg font-semibold flex justify-between mb-4">
                                         {request.description}
                                         {submissionsForRequest &&
