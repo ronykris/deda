@@ -89,32 +89,7 @@ function SubmitDataNew() {
 
   return (
     <div className="space-y-4 py-16">
-      {/* <Card className="bg-white bg-opacity-50 border-none items-center flex flex-col m-auto py-6">
-        <CardHeader>
-          <CardTitle className="text-2xl">Submit Data</CardTitle>
-        </CardHeader>
-        <CardContent className="flex flex-col w-full mt-6">
-          <Input
-            type="number"
-            placeholder="Request ID"
-            value={requestId}
-            onChange={(e) => setRequestId(e.target.value)}
-            className="p-2 border rounded mb-2 max-w-4/5"
-          />
-          <Input
-            type="text"
-            placeholder="Data Location"
-            value={location}
-            onChange={(e) => setLocation(e.target.value)}
-            className="p-2 border rounded mb-2 max-w-4/5"
-          />
-          <Button onClick={submitData} className="px-4 py-2 bg-[#F05B24] text-white rounded m-auto w-full mt-5">
-            Submit
-          </Button>
-          {response && <div className="mt-4">{response}</div>}
-        </CardContent>
-      </Card> */}
-      <Card className="bg-[#fff5e8] bg-opacity-50 border-none">
+      <Card className="bg-[#fff5e8] bg-opacity-50 border-none shadow-md">
         <CardHeader className="pb-2">
           <CardTitle className="text-xl">
             <span>Data Requests</span>
@@ -124,8 +99,8 @@ function SubmitDataNew() {
           </CardTitle>
         </CardHeader>
         <CardContent>
-          <ul className="space-y-2">
-            {allDataRequests.map((request: DataRequest) => {
+          <ul className="space-y-3">
+            {allDataRequests.toReversed().map((request: DataRequest) => {
               return (
                 <UploadDataCard request={request} key={request.id} />
               )
@@ -134,7 +109,7 @@ function SubmitDataNew() {
         </CardContent>
       </Card>
       {response && <div className="mt-4 rounded-md shadow-sm p-4">{response}</div>}
-      <Card className="bg-[#fff5e8] bg-opacity-50 border-none">
+      <Card className="bg-[#fff5e8] bg-opacity-50 border-none shadow-md">
         <CardHeader className="pb-2">
           <CardTitle className="text-xl">
             <span>Your Previous Submissions</span>
@@ -144,7 +119,7 @@ function SubmitDataNew() {
           </CardTitle>
         </CardHeader>
         <CardContent>
-          <ul className="space-y-2">
+          <ul className="space-y-3">
             {myDataSubmissions.map((request: DataSubmission) => {
               return (
                 <div key={request.id} className="border-b-2 shadow border-black rounded-sm p-2">

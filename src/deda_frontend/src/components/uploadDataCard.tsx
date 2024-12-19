@@ -113,7 +113,7 @@ const UploadDataCard: React.FC<{ request: DataRequest }> = ({ request }) => {
 
     useEffect(() => {
         getDataSubmissions();
-    }, []);
+    }, [submissionId]);
 
     return (
         <div key={request.id} className="border-b-2 shadow border-black rounded-sm p-2 bg-white">
@@ -122,11 +122,12 @@ const UploadDataCard: React.FC<{ request: DataRequest }> = ({ request }) => {
                 <span className="text-base text-gray-700 mr-4">Request ID: {Number(request.id)}</span>
                 <span className="text-base text-gray-700">Reward: {Number(request.reward)} ICP</span>
             </div>
-            {isSubmitted
-                ? <Button disabled={true} className="bg-[#F05B24] text-black transition-colors mt-4" >Submitted</Button>
-                : <Dialog>
+                <Dialog>
                     <DialogTrigger asChild>
-                        <Button className="bg-[#F05B24] hover:bg-[#28AAE2] transition-colors mt-4" >Submit Data</Button>
+                    {isSubmitted
+                        ? <Button disabled={true} className="bg-[#F05B24] text-black transition-colors mt-4" >Submitted</Button>
+                        : <Button className="bg-[#F05B24] hover:bg-[#28AAE2] transition-colors mt-4" >Submit Data</Button>
+                    }
                     </DialogTrigger>
                     <DialogContent className="sm:max-w-[425px]">
                         <DialogHeader>
@@ -179,7 +180,6 @@ const UploadDataCard: React.FC<{ request: DataRequest }> = ({ request }) => {
                         </DialogClose>
                     </DialogContent>
                 </Dialog>
-            }
         </div>
     );
 };
