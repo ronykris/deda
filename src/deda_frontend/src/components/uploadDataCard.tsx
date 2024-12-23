@@ -61,7 +61,10 @@ const UploadDataCard: React.FC<{ request: DataRequest }> = ({ request }) => {
         }
     }, []);
 
-    const { getRootProps, getInputProps, isDragActive } = useDropzone({ onDrop });
+    const { getRootProps, getInputProps, isDragActive } = useDropzone({
+        onDrop,
+        accept: { 'text/csv': [] }
+    });
 
     const handleUpload = () => {
 
@@ -95,7 +98,6 @@ const UploadDataCard: React.FC<{ request: DataRequest }> = ({ request }) => {
     const getDataSubmissions = async () => {
         try {
             const submissions: DataSubmission[] = await backend.get_submissions() as DataSubmission[];
-            console.log("Updated my submissions: ", submissions);
 
             const isRequestIdPresent = submissions.some(submission => submission.request_id === request.id);
             setIsSubmitted(isRequestIdPresent);
@@ -122,64 +124,64 @@ const UploadDataCard: React.FC<{ request: DataRequest }> = ({ request }) => {
                 <span className="text-base text-gray-700 mr-4">Request ID: {Number(request.id)}</span>
                 <span className="text-base text-gray-700">Reward: {Number(request.reward)} ICP</span>
             </div>
-                <Dialog>
-                    <DialogTrigger asChild>
+            <Dialog>
+                <DialogTrigger asChild>
                     {isSubmitted
                         ? <Button disabled={true} className="bg-[#F05B24] text-black transition-colors mt-4" >Submitted</Button>
                         : <Button className="bg-[#F05B24] hover:bg-[#28AAE2] transition-colors mt-4" >Submit Data</Button>
                     }
-                    </DialogTrigger>
-                    <DialogContent className="sm:max-w-[425px]">
-                        <DialogHeader>
-                            <DialogTitle>Submit Data</DialogTitle>
-                            <DialogDescription>
-                                Submit data for the request with ID {Number(request.id)}
-                            </DialogDescription>
-                        </DialogHeader>
-                        <div
-                            {...getRootProps()}
-                            className={`mt-2 p-4 border-2 border-dashed rounded-md cursor-pointer ${isDragActive ? 'border-blue-500' : 'border-gray-300'
-                                }`}
-                        >
-                            <input {...getInputProps()} />
-                            {isDragActive ? (
-                                <p className="text-center text-blue-500">Drop the files here ...</p>
-                            ) : (
-                                <p className="text-center text-gray-500">
-                                    Drag 'n' drop some files here, or click to select files
-                                    <UploadIcon size={16} className="inline-block ml-2 mb-1" />
-                                </p>
-                            )}
-                        </div>
-                        {file && (
-                            <div className="flex items-center flex-col justify-center">
-                                <p>Selected file: {file.name}</p>
-                                {submissionId != null && <p>Submission ID: {String(submissionId)}</p>}
-                                {submissionId != null &&
-                                    <button
-                                        className="mt-2 bg-[#F05B24] hover:bg-[#28AAE2] flex gap-1 transition-colors text-white py-2 px-3 rounded-md"
-                                        disabled={true}
-                                    >
-                                        {submissionId != null && <p>Submitted!!</p>}
-                                    </button>
-                                }
-                                {submissionId == null &&
-                                    <button
-                                        onClick={handleUpload}
-                                        className="mt-2 bg-[#F05B24] hover:bg-[#28AAE2] flex gap-1 transition-colors text-white py-2 px-3 rounded-md"
-                                    >
-                                        {loading && <LoaderCircle className='animate-spin' />} <span>{loading ? "Uploading..." : "Upload file"}</span>
-                                    </button>
-                                }
-                            </div>
+                </DialogTrigger>
+                <DialogContent className="sm:max-w-[425px]">
+                    <DialogHeader>
+                        <DialogTitle>Submit Data</DialogTitle>
+                        <DialogDescription>
+                            Submit data for the request with ID {Number(request.id)}
+                        </DialogDescription>
+                    </DialogHeader>
+                    <div
+                        {...getRootProps()}
+                        className={`mt-2 p-4 border-2 border-dashed rounded-md cursor-pointer ${isDragActive ? 'border-blue-500' : 'border-gray-300'
+                            }`}
+                    >
+                        <input {...getInputProps()} />
+                        {isDragActive ? (
+                            <p className="text-center text-blue-500">Drop the files here ...</p>
+                        ) : (
+                            <p className="text-center text-gray-500">
+                                Drag 'n' drop some files here, or click to select files
+                                <UploadIcon size={16} className="inline-block ml-2 mb-1" />
+                            </p>
                         )}
-                        <DialogClose asChild>
-                            <DialogFooter>
-                                <Button>Done</Button>
-                            </DialogFooter>
-                        </DialogClose>
-                    </DialogContent>
-                </Dialog>
+                    </div>
+                    {file && (
+                        <div className="flex items-center flex-col justify-center">
+                            <p>Selected file: {file.name}</p>
+                            {submissionId != null && <p>Submission ID: {String(submissionId)}</p>}
+                            {submissionId != null &&
+                                <button
+                                    className="mt-2 bg-[#F05B24] hover:bg-[#28AAE2] flex gap-1 transition-colors text-white py-2 px-3 rounded-md"
+                                    disabled={true}
+                                >
+                                    {submissionId != null && <p>Submitted!!</p>}
+                                </button>
+                            }
+                            {submissionId == null &&
+                                <button
+                                    onClick={handleUpload}
+                                    className="mt-2 bg-[#F05B24] hover:bg-[#28AAE2] flex gap-1 transition-colors text-white py-2 px-3 rounded-md"
+                                >
+                                    {loading && <LoaderCircle className='animate-spin' />} <span>{loading ? "Uploading..." : "Upload file"}</span>
+                                </button>
+                            }
+                        </div>
+                    )}
+                    <DialogClose asChild>
+                        <DialogFooter>
+                            <Button>Done</Button>
+                        </DialogFooter>
+                    </DialogClose>
+                </DialogContent>
+            </Dialog>
         </div>
     );
 };
