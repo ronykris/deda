@@ -20,7 +20,7 @@ const SubmitData: React.FC = () => {
   const submitData = async () => {
     try {
       const principal = user.id;
-      const result: any= await backend.submit_data(principal, Number(requestId), location);
+      const result: any = await backend.submit_data(principal, Number(requestId), location);
       console.log(result)
       if ('Ok' in result) {
         const submissionId = result.Ok;
@@ -31,6 +31,7 @@ const SubmitData: React.FC = () => {
       }
     } catch (error) {
       setResponse('Error submitting data');
+      console.error(error);
     }
   };
 

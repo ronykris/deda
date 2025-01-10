@@ -9,6 +9,9 @@ import AddDataRequest from './components/AddDataRequest';
 import PayContributors from './components/PayContributors';
 //import './App.css';
 import { userState } from './state/userState';
+import { BrowserRouter as Router, Route, Routes } from 'react-router-dom';
+import LandingPage from './components/LandingPage';
+import Dashboard from './components/Dashboard';
 
 const AppContent: React.FC = () => {
   const user = useRecoilValue(userState);
@@ -31,10 +34,21 @@ const AppContent: React.FC = () => {
   );
 };
 
-const App: React.FC = () => (
-  <RecoilRoot>
-    <AppContent />
-  </RecoilRoot>
-);
+const App: React.FC = () => {
+
+  console.log('hhello App.tsx')
+
+  return (
+    <RecoilRoot>
+      <Router>
+        <Routes>
+          <Route path="/" element={<LandingPage />} />
+          <Route path="/login" element={<Login />} />
+          <Route path="/dashboard" element={<Dashboard />} />
+        </Routes>
+      </Router>
+    </RecoilRoot>
+  )
+};
 
 export default App;
