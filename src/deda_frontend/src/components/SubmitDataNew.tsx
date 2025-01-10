@@ -124,10 +124,10 @@ function SubmitDataNew() {
       </div>
       <Tabs defaultValue="account" className="">
         <TabsList className="grid w-full grid-cols-2">
-          <TabsTrigger value="account" className="data-[state=active]:text-[#F05B24]">Account</TabsTrigger>
-          <TabsTrigger value="password" className="data-[state=active]:text-[#F05B24]">Password</TabsTrigger>
+          <TabsTrigger value="data-requests" className="data-[state=active]:text-[#F05B24]">Data Requests</TabsTrigger>
+          <TabsTrigger value="previous-submissions" className="data-[state=active]:text-[#F05B24]">Previous Submissions</TabsTrigger>
         </TabsList>
-        <TabsContent value="account">
+        <TabsContent value="data-requests">
           <Card className="bg-[#fff5e8] bg-opacity-50 border-none shadow-md">
             <CardHeader className="pb-2">
               <CardTitle className="text-xl">
@@ -152,7 +152,7 @@ function SubmitDataNew() {
           </Card>
           {response && <div className="mt-4 rounded-md shadow-sm p-4">{response}</div>}
         </TabsContent>
-        <TabsContent value="password">
+        <TabsContent value="previous-submissions">
           <Card className="bg-[#fff5e8] bg-opacity-50 border-none shadow-md">
             <CardHeader className="pb-2">
               <CardTitle className="text-xl">
