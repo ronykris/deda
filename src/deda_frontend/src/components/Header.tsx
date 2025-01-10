@@ -1,13 +1,43 @@
 import { clearUser, retrieveUser } from "../lib/cacheFunctions";
 import { userState } from "../state/userState";
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import { Link, useNavigate } from "react-router-dom"
 import { useRecoilState } from "recoil";
+import { Avatar, AvatarFallback, AvatarImage } from "./ui/avatar";
+import { HoverCard, HoverCardContent, HoverCardTrigger } from "./ui/hover-card";
+import { Principal } from "@dfinity/principal";
+import { Actor, HttpAgent } from '@dfinity/agent';
+import { idlFactory } from '../../../declarations/deda_backend';
+
+interface DataSubmission {
+    id: string;
+    request_id: string;
+    location: string;
+    provider: Principal;
+    verifier?: Principal;
+    verified: boolean;
+}
+
+interface DataRequest {
+    id: string;
+    description: string;
+    reward: number;
+    creator: Principal;
+}
+
+const agent = new HttpAgent({ host: `http://localhost:4943/?canisterId=${process.env.CANISTER_ID_DEDA_FRONTEND}` });
+agent.fetchRootKey().catch(err => {
+    console.warn('Unable to fetch root key. Check to ensure that your local replica is running');
+    console.error(err);
+});
+const backend = Actor.createActor(idlFactory as any, { agent, canisterId: process.env.CANISTER_ID_DEDA_BACKEND as string });
 
 export default function Header() {
 
     const [user, setUser] = useRecoilState(userState);
     const navigate = useNavigate();
+    const [allDataRequests, setAllDataRequests] = useState<DataRequest[]>([]);
+    const [allDataSubmission, setAllDataSubmission] = useState<DataSubmission[]>([])
 
     useEffect(() => {
         const userData = retrieveUser();
@@ -21,6 +51,25 @@ export default function Header() {
         setUser({ id: null, balance: 0, role: "User" }); // Reset user state
         navigate('/'); // Redirect to login page
     };
+
+    const getDataRequests = async () => {
+        try {
+            const dataRequests = await backend.get_data_requests();
+            setAllDataRequests(dataRequests as DataRequest[]);
+            console.log(dataRequests);
+        } catch (error) {
+            console.error(error);
+        }
+    }
+
+    const getDataSubmissions = async () => {
+        try {
+            const submissions: DataSubmission[] = await backend.get_submissions() as DataSubmission[];
+            setAllDataSubmission(submissions)
+        } catch (error) {
+            console.error(error);
+        }
+    }
 
     return (
         <header className="pt-6 sm:pt-8" data-headlessui-state="">
@@ -43,18 +92,6 @@ export default function Header() {
                         </div>
                     </div>
                     <nav className="relative flex">
-                        {/* <div className="relative flex group/item relative">
-                        <svg viewBox="0 0 15 15" aria-hidden="true" className="hidden group-first/item:block absolute size-[15px] fill-black/10 -top-2 -left-2"><path d="M8 0H7V7H0V8H7V15H8V8H15V7H8V0Z"></path></svg><svg viewBox="0 0 15 15" aria-hidden="true" className="absolute size-[15px] fill-black/10 -top-2 -right-2"><path d="M8 0H7V7H0V8H7V15H8V8H15V7H8V0Z"></path></svg><svg viewBox="0 0 15 15" aria-hidden="true" className="hidden group-last/row:group-first/item:block absolute size-[15px] fill-black/10 -bottom-2 -left-2"><path d="M8 0H7V7H0V8H7V15H8V8H15V7H8V0Z"></path></svg><svg viewBox="0 0 15 15" aria-hidden="true" className="hidden group-last/row:block absolute size-[15px] fill-black/10 -bottom-2 -right-2"><path d="M8 0H7V7H0V8H7V15H8V8H15V7H8V0Z"></path></svg>
-                        <a className="flex items-center px-4 py-3 text-base font-medium text-gray-950 bg-blend-multiply data-[hover]:bg-black/[2.5%]" data-headlessui-state="" href="/pricing">Pricing</a>
-                    </div>
-                    <div className="relative flex group/item relative">
-                        <svg viewBox="0 0 15 15" aria-hidden="true" className="hidden group-first/item:block absolute size-[15px] fill-black/10 -top-2 -left-2"><path d="M8 0H7V7H0V8H7V15H8V8H15V7H8V0Z"></path></svg><svg viewBox="0 0 15 15" aria-hidden="true" className="absolute size-[15px] fill-black/10 -top-2 -right-2"><path d="M8 0H7V7H0V8H7V15H8V8H15V7H8V0Z"></path></svg><svg viewBox="0 0 15 15" aria-hidden="true" className="hidden group-last/row:group-first/item:block absolute size-[15px] fill-black/10 -bottom-2 -left-2"><path d="M8 0H7V7H0V8H7V15H8V8H15V7H8V0Z"></path></svg><svg viewBox="0 0 15 15" aria-hidden="true" className="hidden group-last/row:block absolute size-[15px] fill-black/10 -bottom-2 -right-2"><path d="M8 0H7V7H0V8H7V15H8V8H15V7H8V0Z"></path></svg>
-                        <a className="flex items-center px-4 py-3 text-base font-medium text-gray-950 bg-blend-multiply data-[hover]:bg-black/[2.5%]" data-headlessui-state="" href="/company">Company</a>
-                    </div>
-                    <div className="relative flex group/item relative">
-                        <svg viewBox="0 0 15 15" aria-hidden="true" className="hidden group-first/item:block absolute size-[15px] fill-black/10 -top-2 -left-2"><path d="M8 0H7V7H0V8H7V15H8V8H15V7H8V0Z"></path></svg><svg viewBox="0 0 15 15" aria-hidden="true" className="absolute size-[15px] fill-black/10 -top-2 -right-2"><path d="M8 0H7V7H0V8H7V15H8V8H15V7H8V0Z"></path></svg><svg viewBox="0 0 15 15" aria-hidden="true" className="hidden group-last/row:group-first/item:block absolute size-[15px] fill-black/10 -bottom-2 -left-2"><path d="M8 0H7V7H0V8H7V15H8V8H15V7H8V0Z"></path></svg><svg viewBox="0 0 15 15" aria-hidden="true" className="hidden group-last/row:block absolute size-[15px] fill-black/10 -bottom-2 -right-2"><path d="M8 0H7V7H0V8H7V15H8V8H15V7H8V0Z"></path></svg>
-                        <a className="flex items-center px-4 py-3 text-base font-medium text-gray-950 bg-blend-multiply data-[hover]:bg-black/[2.5%]" data-headlessui-state="" href="/blog">Blog</a>
-                    </div> */}
                         {user.id &&
                             <div className="relative flex group/item ">
                                 <svg viewBox="0 0 15 15" aria-hidden="true" className="hidden group-first/item:block absolute size-[15px] fill-black/10 -top-2 -left-2"><path d="M8 0H7V7H0V8H7V15H8V8H15V7H8V0Z"></path></svg><svg viewBox="0 0 15 15" aria-hidden="true" className="absolute size-[15px] fill-black/10 -top-2 -right-2"><path d="M8 0H7V7H0V8H7V15H8V8H15V7H8V0Z"></path></svg><svg viewBox="0 0 15 15" aria-hidden="true" className="hidden group-last/row:group-first/item:block absolute size-[15px] fill-black/10 -bottom-2 -left-2"><path d="M8 0H7V7H0V8H7V15H8V8H15V7H8V0Z"></path></svg><svg viewBox="0 0 15 15" aria-hidden="true" className="hidden group-last/row:block absolute size-[15px] fill-black/10 -bottom-2 -right-2"><path d="M8 0H7V7H0V8H7V15H8V8H15V7H8V0Z"></path></svg>
@@ -64,15 +101,33 @@ export default function Header() {
                         <div className="relative flex group/item ">
                             <svg viewBox="0 0 15 15" aria-hidden="true" className="hidden group-first/item:block absolute size-[15px] fill-black/10 -top-2 -left-2"><path d="M8 0H7V7H0V8H7V15H8V8H15V7H8V0Z"></path></svg><svg viewBox="0 0 15 15" aria-hidden="true" className="absolute size-[15px] fill-black/10 -top-2 -right-2"><path d="M8 0H7V7H0V8H7V15H8V8H15V7H8V0Z"></path></svg><svg viewBox="0 0 15 15" aria-hidden="true" className="hidden group-last/row:group-first/item:block absolute size-[15px] fill-black/10 -bottom-2 -left-2"><path d="M8 0H7V7H0V8H7V15H8V8H15V7H8V0Z"></path></svg><svg viewBox="0 0 15 15" aria-hidden="true" className="hidden group-last/row:block absolute size-[15px] fill-black/10 -bottom-2 -right-2"><path d="M8 0H7V7H0V8H7V15H8V8H15V7H8V0Z"></path></svg>
                             {user.id
-                                ? <button className="flex items-center px-4 py-3 text-base font-medium text-gray-950 bg-blend-multiply data-[hover]:bg-black/[2.5%]" data-headlessui-state="" onClick={handleLogout}>Logout</button>
+                                ? <div>
+                                    <HoverCard>
+                                        <HoverCardTrigger asChild>
+                                            <Avatar className="cursor-pointer">
+                                                <AvatarImage src={`https://api.dicebear.com/9.x/notionists/svg?seed=${user.id}`} alt="@shadcn" />
+                                                <AvatarFallback>DD</AvatarFallback>
+                                            </Avatar>
+                                        </HoverCardTrigger>
+                                        <HoverCardContent className="w-60 p-2">
+                                            <div className="flex flex-col px-4">
+                                                <div className="px-2">
+                                                    <p className="text-lg text-black font-bold">{allDataRequests.length}</p>
+                                                    <dfn>Total Data Requests</dfn>
+                                                </div>
+                                                <div className="px-2">
+                                                    <p className="text-lg text-black font-bold">{allDataRequests.length - allDataSubmission.length}</p>
+                                                    <dfn>Unfulfilled Data Requests</dfn>
+                                                </div>
+                                                <button className="flex items-center px-2 py-3 w-full rounded text-base font-medium text-gray-950 bg-blend-multiply hover:bg-black/10" data-headlessui-state="" onClick={handleLogout}>Logout</button>
+                                            </div>
+                                        </HoverCardContent>
+                                    </HoverCard>
+                                </div>
                                 : <Link className="flex items-center px-4 py-3 text-base font-medium text-gray-950 bg-blend-multiply data-[hover]:bg-black/[2.5%]" data-headlessui-state="" to="/login">Login</Link>
                             }
                         </div>
                     </nav>
-                    {/* <button className="flex size-12 items-center justify-center self-center rounded-lg data-[hover]:bg-black/5 lg:hidden" aria-label="Open main menu" id="headlessui-disclosure-button-:Rsm6fkq:" type="button" aria-expanded="false" data-headlessui-state="">
-                        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true" data-slot="icon" className="size-6"><path fill-rule="evenodd" d="M3 9a.75.75 0 0 1 .75-.75h16.5a.75.75 0 0 1 0 1.5H3.75A.75.75 0 0 1 3 9Zm0 6.75a.75.75 0 0 1 .75-.75h16.5a.75.75 0 0 1 0 1.5H3.75a.75.75 0 0 1-.75-.75Z" clip-rule="evenodd"></path>
-                        </svg>
-                    </button> */}
                 </div>
             </div>
         </header>
