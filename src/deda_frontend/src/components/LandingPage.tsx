@@ -15,10 +15,15 @@ const LandingPage: React.FC = () => {
                             <p className="mt-8 max-w-lg text-xl/7 font-medium text-gray-950/75 sm:text-2xl/8">
                                 Empowering Fair, Transparent, and Quality-Driven Data for AI and ML Innovation.
                             </p>
-                            <div className="mt-12 flex flex-col gap-x-6 gap-y-4 sm:flex-row">
-                                <a className="inline-flex items-center justify-center px-4 py-[calc(theme(spacing.2)-1px)] rounded-full border border-transparent bg-gray-950 shadow-md whitespace-nowrap text-base font-medium text-white data-[disabled]:bg-gray-950 data-[hover]:bg-gray-800 data-[disabled]:opacity-40" data-headlessui-state="" href="/dashboard">Get started</a>
-                                {/* <a className="relative inline-flex items-center justify-center px-4 py-[calc(theme(spacing.2)-1px)] rounded-full border border-transparent bg-white/15 shadow-md ring-1 ring-[#D15052]/15 after:absolute after:inset-0 after:rounded-full after:shadow-[inset_0_0_2px_1px_#ffffff4d] whitespace-nowrap text-base font-medium text-gray-950 data-[disabled]:bg-white/15 data-[hover]:bg-white/20 data-[disabled]:opacity-40" data-headlessui-state="" href="/pricing">See pricing</a> */}
+                            <div className="mt-12 flex flex-col gap-y-6 sm:gap-y-4 sm:flex-row">
+                                <a className="inline-flex items-center justify-center px-4 py-2 rounded-full border border-transparent bg-gray-950 shadow-md text-base font-medium text-white hover:bg-gray-800 disabled:opacity-40"
+                                    href="/dashboard">Get started</a>    
                             </div>
+                            <div className="mt-6 flex flex-col gap-y-6 sm:gap-y-4 sm:flex-row">
+                            <div className="relative pb-16 text-center sm:pb-24">                            
+                            <img src="/icp-badge.svg" className='w-48 m-auto mt-2'/>                
+                            </div>                    
+                            </div>                            
                         </div>
                     </div>
                 </div>
@@ -44,7 +49,8 @@ const LandingPage: React.FC = () => {
                             <div className="mt-10 grid grid-cols-1 gap-4 sm:mt-16 lg:grid-cols-6 lg:grid-rows-2">
                                 <div className="max-lg:rounded-t-4xl lg:col-span-3 lg:rounded-tl-4xl group relative flex flex-col overflow-hidden rounded-lg bg-white shadow-sm ring-1 ring-black/5 data-[dark]:bg-gray-800 data-[dark]:ring-white/15">
                                     <div className="relative h-80 shrink-0">
-                                        <div className="h-80 bg-[url(/1.jpg)] bg-cover bg-no-repeat" />
+                                        {/*<div className="h-80 bg-[url(/1.jpg)] bg-cover bg-no-repeat" />*/}
+                                        <img src="/1.jpg" alt="Background Image" className="h-80 w-full object-cover" />
                                         <div className="absolute inset-0 bg-gradient-to-t from-white to-50% group-data-[dark]:from-gray-800 group-data-[dark]:from-[-25%]" />
                                     </div>
                                     <div className="relative p-10">
@@ -55,7 +61,7 @@ const LandingPage: React.FC = () => {
                                 </div>
                                 <div className="lg:col-span-3 lg:rounded-tr-4xl group relative flex flex-col overflow-hidden rounded-lg bg-white shadow-sm ring-1 ring-black/5 data-[dark]:bg-gray-800 data-[dark]:ring-white/15">
                                     <div className="relative h-80 shrink-0">
-                                        <div className="h-80 bg-[url(/2.jpg)] bg-cover bg-no-repeat" />
+                                        <img src="/2.jpg" alt="Background Image" className="h-80 w-full object-cover" />
                                         <div className="absolute inset-0 bg-gradient-to-t from-white to-50% group-data-[dark]:from-gray-800 group-data-[dark]:from-[-25%]"></div>
                                     </div>
                                     <div className="relative p-10">
@@ -66,7 +72,8 @@ const LandingPage: React.FC = () => {
                                 </div>
                                 <div className="lg:col-span-4 lg:rounded-bl-4xl group relative flex flex-col overflow-hidden rounded-lg bg-white shadow-sm ring-1 ring-black/5 data-[dark]:bg-gray-800 data-[dark]:ring-white/15">
                                     <div className="relative h-80 shrink-0">
-                                        <div className="h-80 bg-[url(/4.jpg)] bg-cover bg-no-repeat" />
+                                        {/*<div className="h-80 bg-[url(/4.jpg)] bg-cover bg-no-repeat" />*/}
+                                        <img src="/4.jpg" alt="Background Image" className="h-80 w-full object-cover" />
                                         <div className="absolute inset-0 bg-gradient-to-t from-white to-50% group-data-[dark]:from-gray-800 group-data-[dark]:from-[-25%]"></div>
                                     </div>
                                     <div className="relative p-10">
@@ -77,7 +84,8 @@ const LandingPage: React.FC = () => {
                                 </div>
                                 <div className="lg:col-span-2 group relative flex flex-col overflow-hidden rounded-lg bg-white shadow-sm ring-1 ring-black/5 data-[dark]:bg-gray-800 data-[dark]:ring-white/15">
                                     <div className="relative h-80 shrink-0">
-                                        <div className="h-80 bg-[url(/3.jpg)] bg-cover bg-no-repeat" />
+                                        {/*<div className="h-80 bg-[url(/3.jpg)] bg-cover bg-no-repeat" />*/}
+                                        <img src="/3.jpg" alt="Background Image" className="h-80 w-full object-cover" />
                                         <div className="absolute inset-0 bg-gradient-to-t from-white to-50% group-data-[dark]:from-gray-800 group-data-[dark]:from-[-25%]"></div>
                                     </div>
                                     <div className="relative p-10">

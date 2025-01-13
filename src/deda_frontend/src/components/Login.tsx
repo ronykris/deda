@@ -11,12 +11,18 @@ import { useNavigate } from 'react-router-dom';
 
 const canisterId = process.env.CANISTER_ID_DEDA_BACKEND as string;
 
+const isLocal = process.env.DFX_NETWORK !== "ic";
+const host = isLocal ? "http://localhost:4943" : "https://ic0.app";
+
 //const agent = new HttpAgent({host: "http://127.0.0.1:4943"}); //http://be2us-64aaa-aaaaa-qaabq-cai.localhost:4943/
-const agent = new HttpAgent({host: `http://localhost:4943/?canisterId=${process.env.CANISTER_ID_DEDA_FRONTEND}`});
-agent.fetchRootKey().catch(err => {
-  console.warn('Unable to fetch root key. Check to ensure that your local replica is running');
-  console.error(err);
-});
+const agent = new HttpAgent({host: `${host}/?canisterId=${process.env.CANISTER_ID_DEDA_FRONTEND}`});
+if (isLocal) {
+  agent.fetchRootKey().catch(err => {
+    console.warn('Unable to fetch root key. Check to ensure that your local replica is running');
+    console.error(err);
+  });
+}
+
 const backend = Actor.createActor(deda_backend_idl as any, { agent, canisterId: canisterId });
 console.log(backend);
 
@@ -36,9 +42,20 @@ const Login: React.FC = () => {
           idleTimeout: 1000 * 60 * 60
         }
       });
+      const identityProvider = () => {
+        if (process.env.DFX_NETWORK === "local") {
+          return `http://${process.env.CANISTER_ID_INTERNET_IDENTITY}.localhost:4943`;
+        } else if (process.env.DFX_NETWORK === "ic") {
+          return `https://identity.ic0.app`;
+        } else {
+          return `https://identity.ic0.app`;
+        }
+      };
+   
       await authClient.login({
         //identityProvider: `http://127.0.0.1:4943/?canisterId=${process.env.CANISTER_ID_INTERNET_IDENTITY}`,
-        identityProvider: `http://${process.env.CANISTER_ID_INTERNET_IDENTITY}.localhost:4943/`,
+        //identityProvider: `http://${process.env.CANISTER_ID_INTERNET_IDENTITY}.localhost:4943/`,
+        identityProvider: identityProvider(),
         onSuccess: async () => {
           console.log("Login successful");
           const identity = authClient.getIdentity().getPrincipal().toString();

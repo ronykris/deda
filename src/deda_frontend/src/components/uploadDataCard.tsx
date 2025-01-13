@@ -21,11 +21,17 @@ import { Principal } from '@dfinity/principal';
 
 const canisterId = process.env.CANISTER_ID_DEDA_BACKEND as string;
 
-const agent = new HttpAgent({ host: `http://localhost:4943/?canisterId=${process.env.CANISTER_ID_DEDA_FRONTEND}` });
-agent.fetchRootKey().catch(err => {
-    console.warn('Unable to fetch root key. Check to ensure that your local replica is running');
-    console.error(err);
-});
+const isLocal = process.env.DFX_NETWORK !== "ic";
+const host = isLocal ? "http://localhost:4943" : "https://ic0.app";
+
+const agent = new HttpAgent({ host: `${host}/?canisterId=${process.env.CANISTER_ID_DEDA_FRONTEND}` });
+if (isLocal) {
+    agent.fetchRootKey().catch(err => {
+        console.warn('Unable to fetch root key. Check to ensure that your local replica is running');
+        console.error(err);
+    });
+}
+
 const backend = Actor.createActor(deda_backend_idl as any, { agent, canisterId: canisterId });
 console.log(backend);
 

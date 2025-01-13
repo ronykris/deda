@@ -16,12 +16,17 @@ import {
   TabsTrigger,
 } from "./ui/tabs"
 
+const isLocal = process.env.DFX_NETWORK !== "ic";
+const host = isLocal ? "http://localhost:4943" : "https://ic0.app";
 
-const agent = new HttpAgent({ host: `http://localhost:4943/?canisterId=${process.env.CANISTER_ID_DEDA_FRONTEND}` });
-agent.fetchRootKey().catch(err => {
-  console.warn('Unable to fetch root key. Check to ensure that your local replica is running');
-  console.error(err);
-});
+const agent = new HttpAgent({ host: `${host}/?canisterId=${process.env.CANISTER_ID_DEDA_FRONTEND}` });
+if (isLocal) {
+  agent.fetchRootKey().catch(err => {
+    console.warn('Unable to fetch root key. Check to ensure that your local replica is running');
+    console.error(err);
+  });
+}
+
 const backend = Actor.createActor(idlFactory as any, { agent, canisterId: process.env.CANISTER_ID_DEDA_BACKEND as string });
 
 interface DataSubmission {
