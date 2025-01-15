@@ -13,27 +13,10 @@ import {
     DialogClose,
 } from "./ui/dialog"
 import { useDropzone } from 'react-dropzone';
-import { Actor, HttpAgent } from '@dfinity/agent';
-import { idlFactory as deda_backend_idl } from '../../../declarations/deda_backend';
 import { AuthClient } from "@dfinity/auth-client";
 import { LoaderCircle } from "lucide-react"
 import { Principal } from '@dfinity/principal';
-
-const canisterId = process.env.CANISTER_ID_DEDA_BACKEND as string;
-
-const isLocal = process.env.DFX_NETWORK !== "ic";
-const host = isLocal ? "http://localhost:4943" : "https://ic0.app";
-
-const agent = new HttpAgent({ host: `${host}/?canisterId=${process.env.CANISTER_ID_DEDA_FRONTEND}` });
-if (isLocal) {
-    agent.fetchRootKey().catch(err => {
-        console.warn('Unable to fetch root key. Check to ensure that your local replica is running');
-        console.error(err);
-    });
-}
-
-const backend = Actor.createActor(deda_backend_idl as any, { agent, canisterId: canisterId });
-console.log(backend);
+import { getBackend } from '../lib/getBackend'
 
 const getCurrentPrincipal = async () => {
     const authClient = await AuthClient.create();
@@ -60,6 +43,20 @@ const UploadDataCard: React.FC<{ request: DataRequest }> = ({ request }) => {
     const [loading, setLoading] = useState<boolean>(false);
     const [submissionId, setSubmissionId] = useState<unknown | null>(null);
     const [isSubmitted, setIsSubmitted] = useState<boolean>(false);
+    const [backend, setBackend] = useState<any>(null);
+
+    useEffect(() => {
+        const fetchBackend = async () => {
+            try {
+                const backend = await getBackend();
+                setBackend(backend);
+                console.log('Backend: ', backend)
+            } catch (error) {
+                console.error('Error fetching backend:', error);
+            }
+        };    
+        fetchBackend();
+    }, []);
 
     const onDrop = useCallback((acceptedFiles: File[]) => {
         if (acceptedFiles && acceptedFiles.length > 0) {

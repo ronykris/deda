@@ -1,20 +1,25 @@
-import React, { useState } from 'react';
-import { Actor, HttpAgent } from '@dfinity/agent';
-import { idlFactory } from '../../../declarations/deda_backend';
-import * as dotenv from 'dotenv';
-//dotenv.config()
-
-const agent = new HttpAgent();
-agent.fetchRootKey().catch(err => {
-  console.warn('Unable to fetch root key. Check to ensure that your local replica is running');
-  console.error(err);
-});
-const backend = Actor.createActor(idlFactory as any, { agent, canisterId: process.env.CANISTER_ID_DEDA_BACKEND as string });
+import React, { useEffect, useState } from 'react';
+import { getBackend } from '../lib/getBackend'
 
 const StoreCleanedData: React.FC = () => {
   const [requestId, setRequestId] = useState<string>('');
   const [location, setLocation] = useState<string>('');
   const [response, setResponse] = useState<string>('');
+
+  const [backend, setBackend] = useState<any>(null);
+
+    useEffect(() => {
+        const fetchBackend = async () => {
+            try {
+                const backend = await getBackend();
+                setBackend(backend);
+                console.log('Backend: ', backend)
+            } catch (error) {
+                console.error('Error fetching backend:', error);
+            }
+        };    
+        fetchBackend();
+    }, []);
 
   const storeCleanedData = async () => {
     try {

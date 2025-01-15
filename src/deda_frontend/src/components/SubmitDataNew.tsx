@@ -2,8 +2,6 @@ import { Button } from "./ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "./ui/card";
 import { useRecoilValue } from 'recoil';
 import { userState } from '../state/userState';
-import { Actor, HttpAgent } from '@dfinity/agent';
-import { idlFactory } from '../../../declarations/deda_backend';
 import React, { useEffect, useState } from 'react';
 import { Principal } from "@dfinity/principal";
 import { RefreshCw } from "lucide-react"
@@ -15,19 +13,7 @@ import {
   TabsList,
   TabsTrigger,
 } from "./ui/tabs"
-
-const isLocal = process.env.DFX_NETWORK !== "ic";
-const host = isLocal ? "http://localhost:4943" : "https://ic0.app";
-
-const agent = new HttpAgent({ host: `${host}/?canisterId=${process.env.CANISTER_ID_DEDA_FRONTEND}` });
-if (isLocal) {
-  agent.fetchRootKey().catch(err => {
-    console.warn('Unable to fetch root key. Check to ensure that your local replica is running');
-    console.error(err);
-  });
-}
-
-const backend = Actor.createActor(idlFactory as any, { agent, canisterId: process.env.CANISTER_ID_DEDA_BACKEND as string });
+import { getBackend } from '../lib/getBackend'
 
 interface DataSubmission {
   id: string;
@@ -38,7 +24,7 @@ interface DataSubmission {
   verified: boolean;
 }
 
-function SubmitDataNew() {
+const SubmitDataNew: React.FC = () => {
 
   const user = useRecoilValue(userState);
   const [requestId, setRequestId] = useState<string>('');
@@ -49,6 +35,20 @@ function SubmitDataNew() {
   const [loadingDataRequest, setLoadingDataRequest] = useState<boolean>(false)
   const [loadingDataSubmission, setLoadingDataSubmission] = useState<boolean>(false)
   const [allDataSubmission, setAllDataSubmission] = useState<DataSubmission[]>([])
+  const [backend, setBackend] = useState<any>(null);
+
+    useEffect(() => {
+        const fetchBackend = async () => {
+            try {
+                const backend = await getBackend();
+                setBackend(backend);
+                console.log('Backend: ', backend)
+            } catch (error) {
+                console.error('Error fetching backend:', error);
+            }
+        };    
+        fetchBackend();
+    }, []);
 
   const submitData = async () => {
     try {

@@ -8,8 +8,6 @@ import {
 } from "./ui/card";
 import { Textarea } from "./ui/textarea";
 import React, { useEffect, useState } from 'react';
-import { Actor, HttpAgent } from '@dfinity/agent';
-import { idlFactory } from '../../../declarations/deda_backend';
 import { Principal } from "@dfinity/principal";
 import { RefreshCw, Download } from "lucide-react";
 import {
@@ -21,19 +19,7 @@ import {
 import { Input } from "./ui/input"
 import { useRecoilValue } from 'recoil';
 import { userState } from '../state/userState';
-
-const isLocal = process.env.DFX_NETWORK !== "ic";
-const host = isLocal ? "http://localhost:4943" : "https://ic0.app";
-
-const agent = new HttpAgent({ host: `${host}/?canisterId=${process.env.CANISTER_ID_DEDA_FRONTEND}` });
-if (isLocal) {
-    agent.fetchRootKey().catch(err => {
-        console.warn('Unable to fetch root key. Check to ensure that your local replica is running');
-        console.error(err);
-    });
-}
-
-const backend = Actor.createActor(idlFactory as any, { agent, canisterId: process.env.CANISTER_ID_DEDA_BACKEND as string });
+import { getBackend } from '../lib/getBackend'
 
 interface DataRequest {
     id: string;
@@ -50,7 +36,7 @@ type DataSubmission = {
     verified: boolean;
 };
 
-function ResearcherDashboard() {
+const ResearcherDashboard: React.FC = () => {
 
     const [description, setDescription] = useState<string>('');
     const [reward, setReward] = useState<string>('');
@@ -59,13 +45,29 @@ function ResearcherDashboard() {
     const [loadingDataRequest, setLoadingDataRequest] = useState<boolean>(false)
     const [dataSubmission, setDataSubmission] = useState<DataSubmission[]>([]);
     const [loadingDataSubmission, setLoadingDataSubmission] = useState<boolean>(false)
+    const [backend, setBackend] = useState<any>(null);
 
     const user = useRecoilValue(userState);
+
+    useEffect(() => {
+        const fetchBackend = async () => {
+            try {
+                const backend = await getBackend();
+                setBackend(backend);
+                console.log('Backend: ', backend)
+            } catch (error) {
+                console.error('Error fetching backend:', error);
+            }
+        };
+    
+        fetchBackend();
+    }, []);
 
     const addDataRequest = async (e: React.MouseEvent<HTMLButtonElement>) => {
         e.preventDefault();
         try {
             setLoadingDataSubmission(true)
+            
             const requestId = await backend.add_data_request(description, BigInt(reward));
             console.log(requestId);
             setResponse(`Data request added successfully with ID: ${requestId}`);
@@ -85,7 +87,6 @@ function ResearcherDashboard() {
         try {
             setLoadingDataRequest(true)
             getDataSubmissions();
-
             const requests = await backend.get_my_data_requests();
             setMyDataRequests(requests as DataRequest[]);
             console.log(requests);

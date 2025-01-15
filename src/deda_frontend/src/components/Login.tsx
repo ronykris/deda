@@ -1,30 +1,13 @@
 import React, { useState } from 'react';
 import { useRecoilState } from 'recoil';
 import { userState } from '../state/userState';
-import { Actor, HttpAgent } from '@dfinity/agent';
-import { idlFactory as deda_backend_idl } from '../../../declarations/deda_backend';
 import { Principal } from '@dfinity/principal';
 import { AuthClient } from '@dfinity/auth-client';
 import Header from './Header';
 import { storeUser } from '../lib/cacheFunctions';
 import { useNavigate } from 'react-router-dom';
+import { getBackend } from '../lib/getBackend'
 
-const canisterId = process.env.CANISTER_ID_DEDA_BACKEND as string;
-
-const isLocal = process.env.DFX_NETWORK !== "ic";
-const host = isLocal ? "http://localhost:4943" : "https://ic0.app";
-
-//const agent = new HttpAgent({host: "http://127.0.0.1:4943"}); //http://be2us-64aaa-aaaaa-qaabq-cai.localhost:4943/
-const agent = new HttpAgent({host: `${host}/?canisterId=${process.env.CANISTER_ID_DEDA_FRONTEND}`});
-if (isLocal) {
-  agent.fetchRootKey().catch(err => {
-    console.warn('Unable to fetch root key. Check to ensure that your local replica is running');
-    console.error(err);
-  });
-}
-
-const backend = Actor.createActor(deda_backend_idl as any, { agent, canisterId: canisterId });
-console.log(backend);
 
 const Login: React.FC = () => {
   const [user, setUser] = useRecoilState(userState);
@@ -51,7 +34,9 @@ const Login: React.FC = () => {
           return `https://identity.ic0.app`;
         }
       };
-   
+      
+      const backend = await getBackend()
+
       await authClient.login({
         //identityProvider: `http://127.0.0.1:4943/?canisterId=${process.env.CANISTER_ID_INTERNET_IDENTITY}`,
         //identityProvider: `http://${process.env.CANISTER_ID_INTERNET_IDENTITY}.localhost:4943/`,
@@ -62,10 +47,11 @@ const Login: React.FC = () => {
           console.log(identity)
           const principal = Principal.fromText(identity);
           console.log(principal)
+          
           try {
+            console.log(backend)
             const balance = (await backend.get_balance(principal)) as unknown as number;
-            console.log(balance)
-
+            console.log(balance)            
             const result = await backend.login(principal, role);
             console.log(result);
             console.log({ id: principal, balance, role })

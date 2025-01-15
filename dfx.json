@@ -13,7 +13,11 @@
         "src/deda_frontend/dist"
       ],
       "type": "assets",
-      "workspace": "deda_frontend"
+      "workspace": "deda_frontend",
+      "declarations": {
+        "node_compatibility": true,
+        "exclude": ["internet_identity"]
+      }
     },
     "internet_identity": {
       "type": "custom",

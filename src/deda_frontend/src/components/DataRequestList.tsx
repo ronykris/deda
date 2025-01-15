@@ -1,18 +1,24 @@
 import React, { useEffect, useState } from 'react';
-import { Actor, HttpAgent } from '@dfinity/agent';
-import { idlFactory } from '../../../declarations/deda_backend';
 import { DataRequest } from '../types';
+import { getBackend } from '../lib/getBackend'
 
-const agent = new HttpAgent();
-agent.fetchRootKey().catch(err => {
-  console.warn('Unable to fetch root key. Check to ensure that your local replica is running');
-  console.error(err);
-});
-const backend = Actor.createActor(idlFactory as any, { agent, canisterId: process.env.CANISTER_ID_DEDA_BACKEND as string });
-console.log(backend)
 
 const DataRequestList: React.FC = () => {
   const [dataRequests, setDataRequests] = useState<DataRequest[]>([]);
+  const [backend, setBackend] = useState<any>(null);
+
+  useEffect(() => {
+    const fetchBackend = async () => {
+      try {
+        const backend = await getBackend();
+        setBackend(backend);
+        console.log('Backend: ', backend)
+      } catch (error) {
+        console.error('Error fetching backend:', error);
+      }
+    };
+    fetchBackend();
+  }, []);
 
   useEffect(() => {
     const fetchDataRequests = async () => {

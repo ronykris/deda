@@ -6,8 +6,7 @@ import { useRecoilState } from "recoil";
 import { Avatar, AvatarFallback, AvatarImage } from "./ui/avatar";
 import { HoverCard, HoverCardContent, HoverCardTrigger } from "./ui/hover-card";
 import { Principal } from "@dfinity/principal";
-import { Actor, HttpAgent } from '@dfinity/agent';
-import { idlFactory } from '../../../declarations/deda_backend';
+import { getBackend } from '../lib/getBackend'
 
 interface DataSubmission {
     id: string;
@@ -25,25 +24,37 @@ interface DataRequest {
     creator: Principal;
 }
 
-const agent = new HttpAgent({ host: `http://localhost:4943/?canisterId=${process.env.CANISTER_ID_DEDA_FRONTEND}` });
-agent.fetchRootKey().catch(err => {
-    console.warn('Unable to fetch root key. Check to ensure that your local replica is running');
-    console.error(err);
-});
-const backend = Actor.createActor(idlFactory as any, { agent, canisterId: process.env.CANISTER_ID_DEDA_BACKEND as string });
-
 export default function Header() {
 
     const [user, setUser] = useRecoilState(userState);
     const navigate = useNavigate();
     const [allDataRequests, setAllDataRequests] = useState<DataRequest[]>([]);
     const [allDataSubmission, setAllDataSubmission] = useState<DataSubmission[]>([])
+    const [backend, setBackend] = useState<any>(null);
+
+    useEffect(() => {
+        const fetchBackend = async () => {
+            try {
+                const backend = await getBackend();
+                setBackend(backend);
+                console.log('Backend: ', backend)
+            } catch (error) {
+                console.error('Error fetching backend:', error);
+            }
+        };    
+        fetchBackend();
+    }, []);
 
     useEffect(() => {
         const userData = retrieveUser();
         if (userData) {
             setUser(userData);
         }
+    }, []);
+
+    useEffect(() => {
+        getDataRequests();
+        getDataSubmissions();
     }, []);
 
     const handleLogout = () => {
