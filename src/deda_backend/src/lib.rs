@@ -27,6 +27,8 @@ struct DataRequest {
 struct DataSubmission {
     id: u64,
     u_id: u64,
+    name: String,
+    description: String,
     provider: Principal,
     location: String,
     file_size: u64,
@@ -189,7 +191,23 @@ fn add_data_request(description: String, name: String, tags: String, reward: u64
 }
 
 #[update]
-fn submit_data(u_id: u64, data: Vec<String>, file_size: u64) -> Result<u64, String> {
+fn submit_data(u_id: u64, name: String, description: String, data: Vec<String>, file_size: u64) -> Result<u64, String> {
+    if name.len() > 50 {
+        return Err("Name exceeds the maximum length of 50 characters".to_string());
+    }
+    
+    if !is_valid_name(&name) {
+        return Err("Name contains invalid characters".to_string());
+    }
+
+    let word_count = description.split_whitespace().count();
+    if word_count > 200 {
+        return Err("Description exceeds the maximum of 200 words".to_string());
+    }
+    
+    if !is_valid_description(&description) {
+        return Err("Description contains invalid characters".to_string());
+    }
     let caller = ic_cdk::caller();
     STATE.with(|state| {
         let mut state = state.borrow_mut();
@@ -199,6 +217,8 @@ fn submit_data(u_id: u64, data: Vec<String>, file_size: u64) -> Result<u64, Stri
         state.data_submissions.push(DataSubmission {
             id: submission_id,
             u_id,
+            name,
+            description,
             provider: caller,
             location: format!("Submission ID: {}", submission_id),
             file_size,
@@ -237,6 +257,21 @@ fn submit_data(u_id: u64, data: Vec<String>, file_size: u64) -> Result<u64, Stri
         );
         Ok(submission_id)
             
+    })
+}
+
+
+fn is_valid_name(name: &str) -> bool {
+    // Allow alphanumeric characters, spaces, periods, commas, hyphens, and apostrophes
+    name.chars().all(|c| c.is_alphanumeric() || c == ' ' || c == '.' || c == ',' || c == '-' || c == '\'')
+}
+
+fn is_valid_description(description: &str) -> bool {
+    // Allow alphanumeric characters, spaces, and common punctuation
+    description.chars().all(|c| {
+        c.is_alphanumeric() || c.is_whitespace() || 
+        c == '.' || c == ',' || c == '-' || c == '\'' || 
+        c == ':' || c == ';'
     })
 }
 
