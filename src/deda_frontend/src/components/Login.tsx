@@ -13,6 +13,7 @@ const Login: React.FC = () => {
   const [user, setUser] = useRecoilState(userState);
   const [loading, setLoading] = useState(false);
   const [role, setRole] = useState<'User' | 'Validator' | 'Researcher'>('User');
+  const [name, setName] = useState('');
 
   const navigate = useNavigate();
 
@@ -52,7 +53,7 @@ const Login: React.FC = () => {
             console.log(backend)
             const balance = (await backend.get_balance(principal)) as unknown as number;
             console.log(balance)            
-            const result = await backend.login(principal, role);
+            const result = await backend.login(principal, role, name);
             console.log(result);
             console.log({ id: principal, balance, role })
             setUser({ id: principal, balance, role });
@@ -101,6 +102,7 @@ const Login: React.FC = () => {
               </div>
               <p className="font-medium text-base text-body-color mb-11 text-center">Login to your account.</p>
               <form className='flex flex-col gap-8' onSubmit={(e) => console.log(e)}>
+              <input placeholder='name' value={name} onChange={(e) => setName(e.target.value)} className="p-2 border rounded mb-2"/>
                 <select
                   value={role}
                   onChange={(e) => setRole(e.target.value as 'User' | 'Validator' | 'Researcher')}

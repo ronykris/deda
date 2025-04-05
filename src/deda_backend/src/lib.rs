@@ -193,7 +193,7 @@ fn submit_data(u_id: u64, data: Vec<String>, file_size: u64) -> Result<u64, Stri
     let caller = ic_cdk::caller();
     STATE.with(|state| {
         let mut state = state.borrow_mut();
-        let is_public = state.data_requests.iter().any(|r| r.id == u_id); 
+        let is_public = !state.data_requests.iter().any(|r| r.id == u_id); 
         let submission_id = state.next_submission_id;
         state.next_submission_id += 1;
         state.data_submissions.push(DataSubmission {

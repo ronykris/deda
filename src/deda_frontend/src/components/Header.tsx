@@ -24,7 +24,7 @@ interface DataRequest {
     creator: Principal;
 }
 
-export default function Header() {
+export default function Header({className}: {className?: string}) {
 
     const [user, setUser] = useRecoilState(userState);
     const navigate = useNavigate();
